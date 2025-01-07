@@ -20,10 +20,11 @@ func PostMainPage(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("http://localhost:8080/EwHXdJfB")) // http://localhost:8080/EwHXdJfB
-	// w.Write([]byte("Hello"))
+	w.Write([]byte("http://localhost:8080/EwHXdJfB"))
 
 }
+
+var data = map[string]string{"EwHXdJfB": "https://practicum.yandex.ru/"}
 
 func GetID(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -31,16 +32,9 @@ func GetID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := r.PathValue("id")
-	if id == "EwHXdJfB" {
-		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusTemporaryRedirect)
-		w.Write([]byte("Location: https://practicum.yandex.ru/"))
-	} else {
-		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusTemporaryRedirect)
-		w.Write([]byte("Location: https://practicum.yandex.ru/")) // ???
-	}
 
+	w.Header().Set("Location", data[id])
+	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
 func main() {
