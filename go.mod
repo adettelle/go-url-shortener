@@ -1,3 +1,3 @@
 module github.com/adettelle/go-url-shortner
 
-go 1.23.4
+go 1.22.3
