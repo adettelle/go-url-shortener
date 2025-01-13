@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultAddress    = "localhost:8888"
+	defaultAddress    = "localhost:8080"
 	defaultURLAddress = "localhost:8000"
 )
 
@@ -52,7 +52,7 @@ func New() (*Config, error) {
 }
 
 func getAddr(flagAddr *string) string {
-	log.Println("flagAddress:", *flagAddr, os.Getenv("ADDRESS"))
+	// log.Println("flagAddress:", *flagAddr, os.Getenv("ADDRESS"))
 
 	addr := os.Getenv("ADDRESS")
 	if addr != "" {
@@ -62,7 +62,7 @@ func getAddr(flagAddr *string) string {
 }
 
 func getURLAddr(flagURLAddr *string) string {
-	log.Println("flagURLAddress:", *flagURLAddr, os.Getenv("URL_ADDRESS"))
+	// log.Println("flagURLAddress:", *flagURLAddr, os.Getenv("URL_ADDRESS"))
 
 	addr := os.Getenv("URL_ADDRESS")
 	if addr != "" {

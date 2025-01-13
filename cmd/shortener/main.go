@@ -25,7 +25,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-
+	log.Println("Config:", cfg)
 	pathStorage := storage.New()
 
 	handlers := api.New(pathStorage, cfg)
