@@ -7,6 +7,7 @@ import (
 
 	"github.com/adettelle/go-url-shortener/internal/api"
 	"github.com/adettelle/go-url-shortener/internal/storage"
+	"github.com/go-chi/chi/v5"
 )
 
 // var pathStorage = storage.New()
@@ -23,9 +24,10 @@ func run() error {
 
 	handlers := api.New(pathStorage)
 
-	r := http.NewServeMux() // создаем сервер
-	r.HandleFunc("POST /", handlers.PostShortPath)
-	r.HandleFunc("GET /{id}", handlers.GetID)
+	r := chi.NewRouter()
+	r.Post("/", handlers.PostShortPath)
+	r.Get("/{id}", handlers.GetID)
+
 	port := ":8080"
 	fmt.Printf("Starting server on port %s\n", port)
 	return (http.ListenAndServe(port, r))
