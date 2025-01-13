@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/adettelle/go-url-shortener/internal/api"
 	"github.com/adettelle/go-url-shortener/internal/config"
@@ -18,6 +19,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	wg.Wait()
 }
 
 func run() error {
@@ -36,5 +42,8 @@ func run() error {
 
 	//port := ":8080"
 	fmt.Printf("Starting server on port %s\n", cfg.Address) // port
-	return (http.ListenAndServe(cfg.Address, r))            // port
+	//return (http.ListenAndServe(cfg.Address, r))            // port
+	go http.ListenAndServe(cfg.Address, r)    // port
+	go http.ListenAndServe(cfg.URLAddress, r) // port
+	return nil
 }

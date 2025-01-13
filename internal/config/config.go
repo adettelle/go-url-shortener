@@ -15,7 +15,7 @@ const (
 )
 
 type Config struct {
-	Address    string // отвечает за адрес запуска HTTP-сервера, например, localhost:8888
+	Address    string // отвечает за адрес запуска HTTP-сервера, например, localhost:8080
 	URLAddress string // базовый адрес результирующего сокращённого URL
 	// (значение: адрес сервера перед коротким URL, например http://localhost:8000/qsd54gFg)
 
