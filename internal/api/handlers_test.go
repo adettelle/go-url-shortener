@@ -27,7 +27,7 @@ func TestPostShortPath(t *testing.T) {
 	reqURL := "http://localhost:8080/"
 	id := "qqVjJVf"
 
-	mockStorage.EXPECT().AddPath(strBody).Return(reqURL + id)
+	mockStorage.EXPECT().AddPath(strBody).Return(reqURL+id, nil)
 
 	request, err := http.NewRequest(http.MethodPost, reqURL, strings.NewReader(strBody))
 	require.NoError(t, err)
@@ -56,7 +56,7 @@ func TestGetID(t *testing.T) {
 	reqURL := "http://localhost:8080/"
 	header := "https://practicum.yandex.ru/"
 
-	mockStorage.EXPECT().GetPath(id).Return(header)
+	mockStorage.EXPECT().GetPath(id).Return(header, nil)
 
 	request, err := http.NewRequest(http.MethodGet, reqURL, nil)
 	require.NoError(t, err)
@@ -69,5 +69,4 @@ func TestGetID(t *testing.T) {
 
 	require.Equal(t, wantHTTPStatus, response.Code)
 	require.Equal(t, response.Header().Get("Location"), header)
-
 }

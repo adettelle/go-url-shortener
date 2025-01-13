@@ -3,6 +3,7 @@ package api
 
 import (
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -10,8 +11,8 @@ import (
 // such as PathStorage. It describes operations to store, retrieve,
 // check for existence, and delete a "path" entity.
 type Storager interface {
-	GetPath(name string) string
-	AddPath(fullPath string) string
+	GetPath(name string) (string, error)
+	AddPath(fullPath string) (string, error)
 }
 
 type Handlers struct {
@@ -32,17 +33,28 @@ func (h *Handlers) PostShortPath(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Error in body", http.StatusBadRequest) // StatusInternalServerError
+		log.Println("error in writing reading body")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	shortPath := h.repo.AddPath(string(body))
+	shortPath, err := h.repo.AddPath(string(body))
+	if err != nil {
+		log.Println("error in adding path")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	shortenPath := "http://localhost:8080/" + shortPath
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(shortenPath))
+	_, err = w.Write([]byte(shortenPath))
+	if err != nil {
+		log.Println("error in writing response")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 }
 
@@ -52,7 +64,17 @@ func (h *Handlers) GetID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := r.PathValue("id")
+	fullPath, err := h.repo.GetPath(id)
+	if err != nil {
+		log.Println("error in getting path")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	w.Header().Set("Location", h.repo.GetPath(id))
+	if fullPath == "" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Location", fullPath)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }

@@ -34,11 +34,12 @@ func (m *MockStorager) EXPECT() *MockStoragerMockRecorder {
 }
 
 // AddPath mocks base method.
-func (m *MockStorager) AddPath(arg0 string) string {
+func (m *MockStorager) AddPath(arg0 string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddPath", arg0)
 	ret0, _ := ret[0].(string)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddPath indicates an expected call of AddPath.
@@ -48,11 +49,12 @@ func (mr *MockStoragerMockRecorder) AddPath(arg0 interface{}) *gomock.Call {
 }
 
 // GetPath mocks base method.
-func (m *MockStorager) GetPath(arg0 string) string {
+func (m *MockStorager) GetPath(arg0 string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPath", arg0)
 	ret0, _ := ret[0].(string)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetPath indicates an expected call of GetPath.
