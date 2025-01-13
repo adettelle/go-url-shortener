@@ -5,6 +5,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/adettelle/go-url-shortener/internal/config"
 )
 
 // Storager defines an interface for interacting with various storage mechanisms,
@@ -16,12 +18,14 @@ type Storager interface {
 }
 
 type Handlers struct {
-	repo Storager
+	repo   Storager
+	config *config.Config
 }
 
-func New(s Storager) *Handlers {
+func New(s Storager, cfg *config.Config) *Handlers {
 	return &Handlers{
-		repo: s,
+		repo:   s,
+		config: cfg,
 	}
 }
 
@@ -45,7 +49,7 @@ func (h *Handlers) PostShortPath(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortenPath := "http://localhost:8080/" + shortPath
+	shortenPath := "http://" + h.config.URLAddress + "/" + shortPath
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)

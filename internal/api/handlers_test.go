@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/adettelle/go-url-shortener/internal/config"
 	"github.com/adettelle/go-url-shortener/internal/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -18,13 +19,16 @@ func TestPostShortPath(t *testing.T) {
 
 	// создаём объект-заглушку
 	mockStorage := mocks.NewMockStorager(ctrl)
+	cfg, err := config.New()
+	require.NoError(t, err)
 
 	handlers := &Handlers{
-		repo: mockStorage,
+		repo:   mockStorage,
+		config: cfg,
 	}
 
 	strBody := "https://practicum.yandex.ru/"
-	reqURL := "http://localhost:8080/"
+	reqURL := "http://" + cfg.Address + "/"
 	id := "qqVjJVf"
 
 	mockStorage.EXPECT().AddPath(strBody).Return(reqURL+id, nil)

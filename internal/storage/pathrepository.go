@@ -24,6 +24,7 @@ func (e *NoEntryError) Error() string {
 	return fmt.Sprintf("No Entry for name %s", e.name)
 }
 
+// возращает полный url по ключу (короткому url)
 func (p *PathStorage) GetPath(name string) (string, error) {
 	if p.Paths[name] == "" {
 		return "", &NoEntryError{

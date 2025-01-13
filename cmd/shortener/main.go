@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/adettelle/go-url-shortener/internal/api"
+	"github.com/adettelle/go-url-shortener/internal/config"
 	"github.com/adettelle/go-url-shortener/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
@@ -20,15 +21,20 @@ func main() {
 }
 
 func run() error {
+	cfg, err := config.New()
+	if err != nil {
+		return err
+	}
+
 	pathStorage := storage.New()
 
-	handlers := api.New(pathStorage)
+	handlers := api.New(pathStorage, cfg)
 
 	r := chi.NewRouter()
 	r.Post("/", handlers.PostShortPath)
 	r.Get("/{id}", handlers.GetID)
 
-	port := ":8080"
-	fmt.Printf("Starting server on port %s\n", port)
-	return (http.ListenAndServe(port, r))
+	//port := ":8080"
+	fmt.Printf("Starting server on port %s\n", cfg.Address) // port
+	return (http.ListenAndServe(cfg.Address, r))            // port
 }
