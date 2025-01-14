@@ -43,7 +43,7 @@ func run() error {
 	//port := ":8080"
 	fmt.Printf("Starting server on port %s\n", cfg.Address) // port
 	//return (http.ListenAndServe(cfg.Address, r))            // port
-	go http.ListenAndServe(cfg.Address, r)    // port
-	go http.ListenAndServe(cfg.URLAddress, r) // port
+	go http.ListenAndServe(cfg.Address, r) // port
+	// go http.ListenAndServe(cfg.URLAddress, r) // port
 	return nil
 }

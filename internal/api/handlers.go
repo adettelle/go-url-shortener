@@ -49,7 +49,7 @@ func (h *Handlers) PostShortPath(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortenPath := "http://" + h.config.URLAddress + "/" + shortPath
+	shortenPath := h.config.URLAddress + "/" + shortPath // "http://" +
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)

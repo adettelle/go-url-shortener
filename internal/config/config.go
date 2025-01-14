@@ -2,16 +2,12 @@ package config
 
 import (
 	"flag"
-	"fmt"
-	"log"
-	"net"
 	"os"
-	"strconv"
 )
 
 const (
 	defaultAddress    = "localhost:8080"
-	defaultURLAddress = "localhost:8000"
+	defaultURLAddress = "http://localhost:8080"
 )
 
 type Config struct {
@@ -72,13 +68,13 @@ func getURLAddr(flagURLAddr *string) string {
 }
 
 func ensureAddrFLagIsCorrect(addr string) {
-	_, port, err := net.SplitHostPort(addr)
-	if err != nil {
-		log.Fatal()
-	}
+	// _, port, err := net.SplitHostPort(addr)
+	// if err != nil {
+	// 	log.Fatal("!!!!!!!!!!!!" + addr)
+	// }
 
-	_, err = strconv.Atoi(port)
-	if err != nil {
-		log.Fatal(fmt.Errorf("invalid port: '%s'", port))
-	}
+	// _, err = strconv.Atoi(port)
+	// if err != nil {
+	// 	log.Fatal(fmt.Errorf("invalid port: '%s'", port))
+	// }
 }
