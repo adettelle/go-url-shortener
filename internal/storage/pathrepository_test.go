@@ -10,8 +10,6 @@ import (
 func TestAddPath(t *testing.T) {
 	pathStorage := New()
 
-	// x >= 'a' && x <= 'z' || x >= 'A' && x <= 'Z'
-
 	short1, err := pathStorage.AddPath("http://localhost:8080/")
 	require.NoError(t, err)
 	for elem := range short1 {

@@ -40,10 +40,7 @@ func run() error {
 	r.Post("/", handlers.PostShortPath)
 	r.Get("/{id}", handlers.GetID)
 
-	//port := ":8080"
-	fmt.Printf("Starting server on port %s\n", cfg.Address) // port
-	//return (http.ListenAndServe(cfg.Address, r))            // port
-	go http.ListenAndServe(cfg.Address, r) // port
-	// go http.ListenAndServe(cfg.URLAddress, r) // port
+	fmt.Printf("Starting server on port %s\n", cfg.Address)
+	go http.ListenAndServe(cfg.Address, r)
 	return nil
 }

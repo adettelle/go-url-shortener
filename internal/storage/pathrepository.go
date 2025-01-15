@@ -81,10 +81,6 @@ var seededRand = rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
 //
 // Returns:
 //   - A random string composed of characters from the given charset.
-//
-// Notes:
-//   - The function uses a seeded random number generator to ensure randomness.
-//   - If the charset is empty or the length is non-positive, the behavior is undefined. TODO!!!!!!!!!!!!!!!!!
 func stringWithCharset(length int, charset string) (string, error) {
 	if length <= 0 {
 		return "", &InvalidLengthError{}
@@ -96,7 +92,7 @@ func stringWithCharset(length int, charset string) (string, error) {
 
 	b := make([]byte, length)
 	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset)-1)] // letterRunes[rand.Intn(len(letterRunes))]
+		b[i] = charset[seededRand.Intn(len(charset)-1)]
 	}
 	return string(b), nil
 }

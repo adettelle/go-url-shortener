@@ -49,7 +49,7 @@ func (h *Handlers) PostShortPath(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortenPath := h.config.URLAddress + "/" + shortPath // "http://" +
+	shortenPath := h.config.URLAddress + "/" + shortPath
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
@@ -59,7 +59,6 @@ func (h *Handlers) PostShortPath(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
 }
 
 func (h *Handlers) GetID(w http.ResponseWriter, r *http.Request) {
