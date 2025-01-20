@@ -106,7 +106,7 @@ func TestShortAddressCreate(t *testing.T) {
 		Request(context.Background())
 	require.NoError(t, err)
 
-	wantHTTPStatus := http.StatusOK
+	wantHTTPStatus := http.StatusCreated
 	response := httptest.NewRecorder()
 	handlers.ShortAddressCreate(response, request)
 	require.Equal(t, wantHTTPStatus, response.Code)

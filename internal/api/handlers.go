@@ -126,7 +126,7 @@ func (h *Handlers) ShortAddressCreate(w http.ResponseWriter, r *http.Request) {
 	shortenPath := h.config.URLAddress + "/" + shortPath // http://localhost:8000/vN
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	respDTO := ShortAddrCreateResponseDTO{Result: shortenPath}
 	resp, err := json.Marshal(respDTO)
 	if err != nil {
