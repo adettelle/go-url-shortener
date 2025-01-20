@@ -40,6 +40,7 @@ func run() error {
 	r := chi.NewRouter()
 	r.Post("/", mware.WithLogging(handlers.PostShortPath))
 	r.Get("/{id}", mware.WithLogging(handlers.GetID))
+	r.Post("/api/shorten", mware.WithLogging(handlers.ShortAddressCreate))
 
 	fmt.Printf("Starting server on port %s\n", cfg.Address)
 	go http.ListenAndServe(cfg.Address, r)

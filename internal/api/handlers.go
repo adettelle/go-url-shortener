@@ -2,6 +2,8 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
@@ -80,4 +82,61 @@ func (h *Handlers) GetID(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Location", fullPath)
 	w.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+type ShortAddrCreateRequestDTO struct {
+	URL string `json:"url"`
+}
+
+type ShortAddrCreateResponseDTO struct {
+	Result string `json:"result"`
+}
+
+func (h *Handlers) ShortAddressCreate(w http.ResponseWriter, r *http.Request) {
+	var requestBody ShortAddrCreateRequestDTO
+	var buf bytes.Buffer
+
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Read the request body
+	_, err := buf.ReadFrom(r.Body)
+	if err != nil {
+		log.Println("error in writing reading body")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Deserialize JSON into requestBody
+	if err = json.Unmarshal(buf.Bytes(), &requestBody); err != nil {
+		log.Println("error in unmarshalling json")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	shortPath, err := h.repo.AddPath(string(requestBody.URL)) // shortPath is: vN
+	if err != nil {
+		log.Println("error in adding path")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	shortenPath := h.config.URLAddress + "/" + shortPath // http://localhost:8000/vN
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	respDTO := ShortAddrCreateResponseDTO{Result: shortenPath}
+	resp, err := json.Marshal(respDTO)
+	if err != nil {
+		log.Println("error in marshalling json")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	_, err = w.Write(resp)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
