@@ -53,13 +53,13 @@ func New() (*Config, error) {
 		}
 	}
 
-	ensureAddrFLagIsCorrect(cfg.Address)
-	ensureStringIsURL(cfg.URLAddress)
+	mustBeCorrectAddressFlag(cfg.Address)
+	mustBeCorrectURL(cfg.URLAddress)
 
 	return &cfg, nil
 }
 
-func ensureAddrFLagIsCorrect(addr string) {
+func mustBeCorrectAddressFlag(addr string) {
 	_, port, err := net.SplitHostPort(addr)
 	if err != nil {
 		log.Fatal(fmt.Errorf("error in ensuring address: %s", addr))
@@ -71,7 +71,7 @@ func ensureAddrFLagIsCorrect(addr string) {
 	}
 }
 
-func ensureStringIsURL(addr string) {
+func mustBeCorrectURL(addr string) {
 	_, err := url.ParseRequestURI(addr)
 	if err != nil {
 		log.Fatal(fmt.Errorf("invalid url: '%s'", addr))

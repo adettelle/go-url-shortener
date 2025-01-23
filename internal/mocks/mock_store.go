@@ -33,32 +33,32 @@ func (m *MockStorager) EXPECT() *MockStoragerMockRecorder {
 	return m.recorder
 }
 
-// AddPath mocks base method.
-func (m *MockStorager) AddPath(arg0 string) (string, error) {
+// AddAddress mocks base method.
+func (m *MockStorager) AddAddress(arg0 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddPath", arg0)
+	ret := m.ctrl.Call(m, "AddAddress", arg0)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// AddPath indicates an expected call of AddPath.
-func (mr *MockStoragerMockRecorder) AddPath(arg0 interface{}) *gomock.Call {
+// AddAddress indicates an expected call of AddAddress.
+func (mr *MockStoragerMockRecorder) AddAddress(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPath", reflect.TypeOf((*MockStorager)(nil).AddPath), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAddress", reflect.TypeOf((*MockStorager)(nil).AddAddress), arg0)
 }
 
-// GetPath mocks base method.
-func (m *MockStorager) GetPath(arg0 string) (string, error) {
+// GetAddress mocks base method.
+func (m *MockStorager) GetAddress(arg0 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPath", arg0)
+	ret := m.ctrl.Call(m, "GetAddress", arg0)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetPath indicates an expected call of GetPath.
-func (mr *MockStoragerMockRecorder) GetPath(arg0 interface{}) *gomock.Call {
+// GetAddress indicates an expected call of GetAddress.
+func (mr *MockStoragerMockRecorder) GetAddress(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPath", reflect.TypeOf((*MockStorager)(nil).GetPath), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAddress", reflect.TypeOf((*MockStorager)(nil).GetAddress), arg0)
 }

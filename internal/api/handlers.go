@@ -5,18 +5,21 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/adettelle/go-url-shortener/internal/config"
+	"github.com/adettelle/go-url-shortener/internal/logger"
+	"go.uber.org/zap"
 )
+
+var errlog *zap.Logger = logger.Logger
 
 // Storager defines an interface for interacting with various storage mechanisms,
 // such as PathStorage. It describes operations to store, retrieve,
-// check for existence, and delete a "path" entity.
+// check for existence, and delete a "address" entity.
 type Storager interface {
-	GetPath(name string) (string, error)
-	AddPath(fullPath string) (string, error)
+	GetAddress(name string) (string, error)
+	AddAddress(fullPath string) (string, error)
 }
 
 type Handlers struct {
@@ -31,69 +34,90 @@ func New(s Storager, cfg *config.Config) *Handlers {
 	}
 }
 
-func (h *Handlers) PostShortPath(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) CreateShortAddressPlainText(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
+	var err error
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Println("error in writing reading body")
+		errlog.Error("error in writing reading body", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	shortPath, err := h.repo.AddPath(string(body))
+	/*
+		shortenAddress, err := helper(h, string(body))
+		if err != nil {
+			errlog.Error("error in adding address", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	*/
+	shortAddress, err := h.repo.AddAddress(string(body))
 	if err != nil {
-		log.Println("error in adding path")
+		errlog.Error("error in adding address", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	shortenPath := h.config.URLAddress + "/" + shortPath
+	shortenAddress := h.config.URLAddress + "/" + shortAddress
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	_, err = w.Write([]byte(shortenPath))
+	_, err = w.Write([]byte(shortenAddress))
 	if err != nil {
-		log.Println("error in writing response")
+		errlog.Error("error in writing response", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
 
-func (h *Handlers) GetID(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) GetFullAddress(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 	id := r.PathValue("id")
-	fullPath, err := h.repo.GetPath(id)
+	fullAddress, err := h.repo.GetAddress(id)
 	if err != nil {
-		log.Println("error in getting path")
+		errlog.Error("error in getting address", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	if fullPath == "" {
+	if fullAddress == "" {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	w.Header().Set("Location", fullPath)
+	w.Header().Set("Location", fullAddress)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-type ShortAddrCreateRequestDTO struct {
+type shortAddrCreateRequestDTO struct {
 	URL string `json:"url"`
 }
 
-type ShortAddrCreateResponseDTO struct {
+type shortAddrCreateResponseDTO struct {
 	Result string `json:"result"`
 }
 
-func (h *Handlers) ShortAddressCreate(w http.ResponseWriter, r *http.Request) {
-	var requestBody ShortAddrCreateRequestDTO
+func helper(h *Handlers, body string) (string, error) {
+	shortAddress, err := h.repo.AddAddress(string(body))
+	if err != nil {
+		errlog.Error("error in adding address", zap.Error(err))
+		return "", err
+	}
+
+	shortenAddress := h.config.URLAddress + "/" + shortAddress
+	return shortenAddress, nil
+}
+
+func (h *Handlers) CreateShortAddressJson(w http.ResponseWriter, r *http.Request) {
+	var requestBody shortAddrCreateRequestDTO
 	var buf bytes.Buffer
 
 	if r.Method != http.MethodPost {
@@ -104,33 +128,41 @@ func (h *Handlers) ShortAddressCreate(w http.ResponseWriter, r *http.Request) {
 	// Read the request body
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
-		log.Println("error in writing reading body")
+		errlog.Error("error in writing reading body", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// Deserialize JSON into requestBody
 	if err = json.Unmarshal(buf.Bytes(), &requestBody); err != nil {
-		log.Println("error in unmarshalling json")
+		errlog.Error("error in unmarshalling json", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	shortPath, err := h.repo.AddPath(string(requestBody.URL)) // shortPath is: vN
+	/*
+		shortenAddress, err := helper(h, requestBody.URL)
+		if err != nil {
+			errlog.Error("error in adding address", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	*/
+	shortAddress, err := h.repo.AddAddress(requestBody.URL) // shortAddress is: vN
 	if err != nil {
-		log.Println("error in adding path")
+		errlog.Error("error in adding address", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	shortenPath := h.config.URLAddress + "/" + shortPath // http://localhost:8000/vN
+	shortenAddress := h.config.URLAddress + "/" + shortAddress // http://localhost:8000/vN
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	respDTO := ShortAddrCreateResponseDTO{Result: shortenPath}
+	respDTO := shortAddrCreateResponseDTO{Result: shortenAddress}
 	resp, err := json.Marshal(respDTO)
 	if err != nil {
-		log.Println("error in marshalling json")
+		errlog.Error("error in marshalling json", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

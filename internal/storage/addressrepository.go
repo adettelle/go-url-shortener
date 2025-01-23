@@ -7,13 +7,15 @@ import (
 	"golang.org/x/exp/rand"
 )
 
-type PathStorage struct {
-	Paths map[string]string
+const charSet = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ"
+
+type AddressStorage struct {
+	Addresses map[string]string
 }
 
-func New() *PathStorage {
-	paths := make(map[string]string)
-	return &PathStorage{Paths: paths}
+func New() *AddressStorage {
+	addresses := make(map[string]string)
+	return &AddressStorage{Addresses: addresses}
 }
 
 type NoEntryError struct {
@@ -25,37 +27,36 @@ func (e *NoEntryError) Error() string {
 }
 
 // возращает полный url по ключу (короткому url)
-func (p *PathStorage) GetPath(name string) (string, error) {
-	if p.Paths[name] == "" {
+func (p *AddressStorage) GetAddress(name string) (string, error) {
+	if p.Addresses[name] == "" {
 		return "", &NoEntryError{
 			name: name,
 		}
 	}
-	return p.Paths[name], nil
+	return p.Addresses[name], nil
 }
 
-type EmptyPathError struct{}
+type EmptyAddressError struct{}
 
-func (e *EmptyPathError) Error() string {
-	return "Empty full path!"
+func (e *EmptyAddressError) Error() string {
+	return "Empty full address"
 }
 
-func (p *PathStorage) AddPath(fullPath string) (string, error) {
-	if fullPath == "" {
-		return "", &EmptyPathError{}
+func (a *AddressStorage) AddAddress(fullAddress string) (string, error) {
+	if fullAddress == "" {
+		return "", &EmptyAddressError{}
 	}
 	rangeStart := 2
 	rangeEnd := 10
 	offset := rangeEnd - rangeStart
 	randLength := seededRand.Intn(offset) + rangeStart
 
-	charSet := "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ"
 	randString, err := stringWithCharset(randLength, charSet)
 	if err != nil {
 		return "", err
 	}
 
-	p.Paths[randString] = fullPath
+	a.Addresses[randString] = fullAddress
 
 	return randString, nil
 }
@@ -69,7 +70,7 @@ func (e *InvalidLengthError) Error() string {
 type InvalidCharSetError struct{}
 
 func (e *InvalidCharSetError) Error() string {
-	return "Invalid char set!"
+	return "Invalid charset!"
 }
 
 var seededRand = rand.New(rand.NewSource(uint64(time.Now().UnixNano())))

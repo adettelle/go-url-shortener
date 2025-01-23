@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPostShortPath(t *testing.T) {
+func TestCreateShortAddressPlainText(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -33,20 +33,20 @@ func TestPostShortPath(t *testing.T) {
 	reqURL := "http://" + cfg.Address + "/"
 	id := "qqVjJVf"
 
-	mockStorage.EXPECT().AddPath(strBody).Return(reqURL+id, nil)
+	mockStorage.EXPECT().AddAddress(strBody).Return(reqURL+id, nil)
 
 	request, err := http.NewRequest(http.MethodPost, reqURL, strings.NewReader(strBody))
 	require.NoError(t, err)
 
 	response := httptest.NewRecorder()
 
-	handlers.PostShortPath(response, request)
+	handlers.CreateShortAddressPlainText(response, request)
 
 	wantHTTPStatus := http.StatusCreated
 	require.Equal(t, wantHTTPStatus, response.Code)
 }
 
-func TestGetID(t *testing.T) {
+func TestGetFullAddress(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -62,14 +62,14 @@ func TestGetID(t *testing.T) {
 	reqURL := "http://localhost:8080/"
 	header := "https://practicum.yandex.ru/"
 
-	mockStorage.EXPECT().GetPath(id).Return(header, nil)
+	mockStorage.EXPECT().GetAddress(id).Return(header, nil)
 
 	request, err := http.NewRequest(http.MethodGet, reqURL, nil)
 	require.NoError(t, err)
 	request.SetPathValue("id", id)
 	response := httptest.NewRecorder()
 
-	handlers.GetID(response, request)
+	handlers.GetFullAddress(response, request)
 
 	wantHTTPStatus := http.StatusTemporaryRedirect
 
@@ -77,7 +77,7 @@ func TestGetID(t *testing.T) {
 	require.Equal(t, response.Header().Get("Location"), header)
 }
 
-func TestShortAddressCreate(t *testing.T) {
+func TestCreateShortAddressJson(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -92,11 +92,11 @@ func TestShortAddressCreate(t *testing.T) {
 		config: cfg,
 	}
 
-	reqBody := ShortAddrCreateRequestDTO{URL: "https://practicum.yandex.ru/"}
+	reqBody := shortAddrCreateRequestDTO{URL: "https://practicum.yandex.ru/"}
 	reqURL := "http://" + cfg.Address + "/api/shorten"
 	id := "qqVjJVf"
 
-	mockStorage.EXPECT().AddPath(reqBody.URL).Return(reqURL+id, nil)
+	mockStorage.EXPECT().AddAddress(reqBody.URL).Return(reqURL+id, nil)
 
 	request, err := requests.
 		URL(reqURL).
@@ -108,6 +108,6 @@ func TestShortAddressCreate(t *testing.T) {
 
 	wantHTTPStatus := http.StatusCreated
 	response := httptest.NewRecorder()
-	handlers.ShortAddressCreate(response, request)
+	handlers.CreateShortAddressJson(response, request)
 	require.Equal(t, wantHTTPStatus, response.Code)
 }

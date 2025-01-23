@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"sync"
 
 	"github.com/adettelle/go-url-shortener/internal/api"
 	"github.com/adettelle/go-url-shortener/internal/config"
@@ -13,18 +12,11 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// var pathStorage = storage.New()
-
 func main() {
 	err := run()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	wg.Wait()
 }
 
 func run() error {
@@ -33,16 +25,15 @@ func run() error {
 		return err
 	}
 	log.Println("Config:", cfg)
-	pathStorage := storage.New()
+	addressStorage := storage.New()
 
-	handlers := api.New(pathStorage, cfg)
+	handlers := api.New(addressStorage, cfg)
 
 	r := chi.NewRouter()
-	r.Post("/", mware.WithLogging(handlers.PostShortPath))
-	r.Get("/{id}", mware.WithLogging(handlers.GetID))
-	r.Post("/api/shorten", mware.WithLogging(handlers.ShortAddressCreate))
+	r.Post("/", mware.WithLogging(handlers.CreateShortAddressPlainText))
+	r.Get("/{id}", mware.WithLogging(handlers.GetFullAddress))
+	r.Post("/api/shorten", mware.WithLogging(handlers.CreateShortAddressJson))
 
 	fmt.Printf("Starting server on port %s\n", cfg.Address)
-	go http.ListenAndServe(cfg.Address, r)
-	return nil
+	return http.ListenAndServe(cfg.Address, r)
 }

@@ -43,13 +43,16 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 // WithLogging wraps an http.HandlerFunc to add logging functionality.
 // It logs information about each HTTP request, including the URI, method, response status code,
 // response size, and the duration of the request.
+
+// TODO потом можно будет добавить env DEV bool, а в конфиг добавить IsDevelopment
+// и в зависимости от значения делать zap.NewDevelopment или zap.NewProduction..
 func WithLogging(h http.HandlerFunc) http.HandlerFunc {
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
 		logger, err := zap.NewDevelopment()
 		if err != nil {
-			log.Fatal("cannot initialize zap")
+			log.Fatalf("cannot initialize zap: %v", err)
 		}
 		// используется для отложенного выполнения метода Sync объекта logger
 		defer logger.Sync()

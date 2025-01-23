@@ -1,66 +1,71 @@
 package storage
 
 import (
-	"log"
 	"testing"
 
+	"github.com/adettelle/go-url-shortener/internal/logger"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
-func TestAddPath(t *testing.T) {
-	pathStorage := New()
+var errlog *zap.Logger = logger.Logger
 
-	short1, err := pathStorage.AddPath("http://localhost:8080/")
+func TestAddAddress(t *testing.T) {
+	addressStorage := New()
+
+	short1, err := addressStorage.AddAddress("http://localhost:8080/")
 	require.NoError(t, err)
 	for elem := range short1 {
 		if elem >= 'a' && elem <= 'z' || elem >= 'A' && elem <= 'Z' {
-			fullPath1, err := pathStorage.GetPath(short1)
+			fullAddress1, err := addressStorage.GetAddress(short1)
 			require.NoError(t, err)
-			require.Equal(t, "http://localhost:8080/", fullPath1)
+			require.Equal(t, "http://localhost:8080/", fullAddress1)
 		} else {
-			// require.Equal()
-			log.Println("Error in char set") // TODO!!!!!!!!!!!
+			// require.Equal() ??? TODO
+			errlog.Error("Error in charset", zap.Error(err))
+
 		}
 	}
 
-	short2, err := pathStorage.AddPath("http://localhost:8080/")
+	short2, err := addressStorage.AddAddress("http://localhost:8080/")
 	require.NoError(t, err)
 	for elem := range short2 {
 		if elem >= 'a' && elem <= 'z' || elem >= 'A' && elem <= 'Z' {
-			fullPath2, err := pathStorage.GetPath(short2)
+			fullAddress2, err := addressStorage.GetAddress(short2)
 			require.NoError(t, err)
-			require.Equal(t, "http://localhost:8080/", fullPath2)
+			require.Equal(t, "http://localhost:8080/", fullAddress2)
 		} else {
-			log.Println("Error in char set") // TODO!!!!!!!!!!!
+			// require.Equal() ??? TODO
+			errlog.Error("Error in charset", zap.Error(err))
 		}
 	}
 
 }
 
-func TestAddPathEmptyString(t *testing.T) {
-	pathStorage := New()
-	myErr := &EmptyPathError{}
-	_, err := pathStorage.AddPath("")
+func TestAddAddressEmptyString(t *testing.T) {
+	addressStorage := New()
+	myErr := &EmptyAddressError{}
+	_, err := addressStorage.AddAddress("")
 	require.Equal(t, err, myErr)
 }
 
-func TestGetPath(t *testing.T) {
-	pathStorage := New()
+func TestGetAddress(t *testing.T) {
+	addressStorage := New()
 
-	fullPath := "http://localhost:8080/"
-	name, err := pathStorage.AddPath(fullPath)
+	fullAddress := "http://localhost:8080/"
+	name, err := addressStorage.AddAddress(fullAddress)
 	require.NoError(t, err)
 
-	short, err := pathStorage.GetPath(name)
+	short, err := addressStorage.GetAddress(name)
 	require.NoError(t, err)
-	require.Equal(t, fullPath, short)
+	require.Equal(t, fullAddress, short)
 }
 
-func TestGetPathUnknownName(t *testing.T) {
-	pathStorage := New()
+func TestGetAddressUnknownName(t *testing.T) {
+	addressStorage := New()
 
 	unknownName := "aaa"
-	_, err := pathStorage.GetPath(unknownName)
+	_, err := addressStorage.GetAddress(unknownName)
 	require.Equal(t, err, &NoEntryError{name: unknownName})
 }
 
