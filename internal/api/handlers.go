@@ -116,7 +116,7 @@ func helper(h *Handlers, body string) (string, error) {
 	return shortenAddress, nil
 }
 
-func (h *Handlers) CreateShortAddressJson(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) CreateShortAddressJSON(w http.ResponseWriter, r *http.Request) {
 	var requestBody shortAddrCreateRequestDTO
 	var buf bytes.Buffer
 

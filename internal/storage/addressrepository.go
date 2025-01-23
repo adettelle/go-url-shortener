@@ -27,13 +27,14 @@ func (e *NoEntryError) Error() string {
 }
 
 // возращает полный url по ключу (короткому url)
-func (p *AddressStorage) GetAddress(name string) (string, error) {
-	if p.Addresses[name] == "" {
-		return "", &NoEntryError{
-			name: name,
-		}
+func (a *AddressStorage) GetAddress(name string) (string, error) {
+	if addr, ok := a.Addresses[name]; ok {
+		return addr, nil
 	}
-	return p.Addresses[name], nil
+
+	return "", &NoEntryError{
+		name: name,
+	}
 }
 
 type EmptyAddressError struct{}
