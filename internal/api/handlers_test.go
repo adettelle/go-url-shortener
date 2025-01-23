@@ -108,6 +108,6 @@ func TestCreateShortAddressJson(t *testing.T) {
 
 	wantHTTPStatus := http.StatusCreated
 	response := httptest.NewRecorder()
-	handlers.CreateShortAddressJson(response, request)
+	handlers.CreateShortAddressJSON(response, request)
 	require.Equal(t, wantHTTPStatus, response.Code)
 }
