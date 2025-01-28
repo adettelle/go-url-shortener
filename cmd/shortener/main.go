@@ -7,8 +7,8 @@ import (
 
 	"github.com/adettelle/go-url-shortener/internal/api"
 	"github.com/adettelle/go-url-shortener/internal/config"
-	"github.com/adettelle/go-url-shortener/internal/mware"
 	"github.com/adettelle/go-url-shortener/internal/storage"
+	"github.com/adettelle/go-url-shortener/pkg/mware"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -30,9 +30,9 @@ func run() error {
 	handlers := api.New(addressStorage, cfg)
 
 	r := chi.NewRouter()
-	r.Post("/", mware.WithLogging(handlers.CreateShortAddressPlainText))
-	r.Get("/{id}", mware.WithLogging(handlers.GetFullAddress))
-	r.Post("/api/shorten", mware.WithLogging(handlers.CreateShortAddressJSON))
+	r.Post("/", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressPlainText)))
+	r.Get("/{id}", mware.WithLogging(mware.GzipMiddleware(handlers.GetFullAddress)))
+	r.Post("/api/shorten", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressJSON)))
 
 	fmt.Printf("Starting server on port %s\n", cfg.Address)
 	return http.ListenAndServe(cfg.Address, r)
