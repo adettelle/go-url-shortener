@@ -18,11 +18,23 @@ func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		contentType := r.Header.Values("Content-Type")
+
+		isGzipContentType := false
+
 		for _, ct := range contentType {
-			if !strings.Contains(ct, "application/x-gzip") {
-				w.WriteHeader(http.StatusBadRequest)
-				return
+			// if !strings.Contains(ct, "application/json") && !strings.Contains(ct, "text/plain") {
+			// 	w.WriteHeader(http.StatusBadRequest)
+			// 	return
+			// }
+			if strings.Contains(ct, "application/x-gzip") {
+				// w.WriteHeader(http.StatusBadRequest)
+				isGzipContentType = true
 			}
+		}
+
+		if !isGzipContentType {
+			h.ServeHTTP(w, r)
+			return
 		}
 
 		// по умолчанию устанавливаем оригинальный http.ResponseWriter как тот,
