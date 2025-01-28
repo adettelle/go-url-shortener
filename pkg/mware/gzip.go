@@ -19,7 +19,7 @@ func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 
 		contentType := r.Header.Values("Content-Type")
 		for _, ct := range contentType {
-			if !strings.Contains(ct, "application/json") && !strings.Contains(ct, "text/plain") {
+			if !strings.Contains(ct, "application/x-gzip") {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
