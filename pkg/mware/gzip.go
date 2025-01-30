@@ -22,12 +22,7 @@ func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 		isGzipContentType := false
 
 		for _, ct := range contentType {
-			// if !strings.Contains(ct, "application/json") && !strings.Contains(ct, "text/plain") {
-			// 	w.WriteHeader(http.StatusBadRequest)
-			// 	return
-			// }
 			if strings.Contains(ct, "application/x-gzip") {
-				// w.WriteHeader(http.StatusBadRequest)
 				isGzipContentType = true
 			}
 		}

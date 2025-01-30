@@ -11,7 +11,7 @@ import (
 var errlog *zap.Logger = logger.Logger
 
 func TestAddAddress(t *testing.T) {
-	addressStorage := New()
+	addressStorage := New("")
 
 	short1, err := addressStorage.AddAddress("http://localhost:8080/")
 	require.NoError(t, err)
@@ -43,14 +43,14 @@ func TestAddAddress(t *testing.T) {
 }
 
 func TestAddAddressEmptyString(t *testing.T) {
-	addressStorage := New()
+	addressStorage := New("")
 	myErr := &EmptyAddressError{}
 	_, err := addressStorage.AddAddress("")
 	require.Equal(t, err, myErr)
 }
 
 func TestGetAddress(t *testing.T) {
-	addressStorage := New()
+	addressStorage := New("")
 
 	fullAddress := "http://localhost:8080/"
 	name, err := addressStorage.AddAddress(fullAddress)
@@ -62,7 +62,7 @@ func TestGetAddress(t *testing.T) {
 }
 
 func TestGetAddressUnknownName(t *testing.T) {
-	addressStorage := New()
+	addressStorage := New("")
 
 	unknownName := "aaa"
 	_, err := addressStorage.GetAddress(unknownName)

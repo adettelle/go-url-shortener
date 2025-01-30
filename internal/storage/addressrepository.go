@@ -11,11 +11,15 @@ const charSet = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ"
 
 type AddressStorage struct {
 	Addresses map[string]string
+	FileName  string // чтобы можно было синхронно писать изменения в файл FileStoragePath
 }
 
-func New() *AddressStorage {
+func New(fileStoragePath string) *AddressStorage {
 	addresses := make(map[string]string)
-	return &AddressStorage{Addresses: addresses}
+	return &AddressStorage{
+		Addresses: addresses,
+		FileName:  fileStoragePath,
+	}
 }
 
 type NoEntryError struct {
@@ -58,6 +62,13 @@ func (a *AddressStorage) AddAddress(fullAddress string) (string, error) {
 	}
 
 	a.Addresses[randString] = fullAddress
+
+	if a.FileName != "" {
+		err := WriteAddressStorageToJSONFile(a.FileName, a)
+		if err != nil {
+			return "", err
+		}
+	}
 
 	return randString, nil
 }
