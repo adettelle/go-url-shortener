@@ -12,15 +12,17 @@ import (
 )
 
 const (
-	defaultAddress    = "localhost:8080"
-	defaultURLAddress = "http://localhost:8080"
+	defaultAddress         = "localhost:8080"
+	defaultURLAddress      = "http://localhost:8080"
+	defaultFileStoragePath = "/tmp/short-url-db.json"
 )
 
 type Config struct {
 	Address    string `envconfig:"SERVER_ADDRESS"` // отвечает за адрес запуска HTTP-сервера, например, localhost:8080
 	URLAddress string `envconfig:"BASE_URL"`       // базовый адрес результирующего сокращённого URL
 	// (значение: адрес сервера перед коротким URL, например http://localhost:8000/qsd54gFg)
-
+	FileStoragePath string `envconfig:"FILE_STORAGE_PATH"` // полное имя файла,
+	// куда сохраняются данные в формате JSON, пустое значение отключает функцию записи на диск
 }
 
 // приоритет:
@@ -37,10 +39,11 @@ func New() (*Config, error) {
 
 	flagAddr := flag.String("a", "", "Net address localhost:port")
 	flagURLAddr := flag.String("b", "", "Result url address http://localhost:port/qsd54gFg")
+	flagFileStoragePath := flag.String("f", "", "full file name for data in json format")
 
 	flag.Parse()
 
-	if cfg.Address == "" {
+	if cfg.Address == "" { // то есть переменная окружения не задана
 		cfg.Address = *flagAddr
 		if cfg.Address == "" {
 			cfg.Address = defaultAddress
@@ -53,8 +56,16 @@ func New() (*Config, error) {
 		}
 	}
 
+	if cfg.FileStoragePath == "" {
+		cfg.FileStoragePath = *flagFileStoragePath
+		if cfg.FileStoragePath == "" {
+			cfg.FileStoragePath = defaultFileStoragePath
+		}
+	}
+
 	mustBeCorrectAddressFlag(cfg.Address)
 	mustBeCorrectURL(cfg.URLAddress)
+	// TODO надо ли проверить путь FileStoragePath
 
 	return &cfg, nil
 }
