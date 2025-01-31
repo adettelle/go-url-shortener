@@ -11,8 +11,6 @@ import (
 	"github.com/adettelle/go-url-shortener/internal/config"
 	"github.com/adettelle/go-url-shortener/internal/helpers"
 	"github.com/adettelle/go-url-shortener/internal/storage"
-	"github.com/adettelle/go-url-shortener/pkg/mware"
-	"github.com/go-chi/chi/v5"
 )
 
 func main() {
@@ -86,10 +84,11 @@ func startServer(cfg *config.Config, addrStorage *storage.AddressStorage) {
 
 	handlers := api.New(addrStorage, cfg)
 
-	r := chi.NewRouter()
-	r.Post("/", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressPlainText)))
-	r.Get("/{id}", mware.WithLogging(mware.GzipMiddleware(handlers.GetFullAddress)))
-	r.Post("/api/shorten", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressJSON)))
+	r := api.NewRouter(addrStorage, handlers)
+	// r := chi.NewRouter()
+	// r.Post("/", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressPlainText)))
+	// r.Get("/{id}", mware.WithLogging(mware.GzipMiddleware(handlers.GetFullAddress)))
+	// r.Post("/api/shorten", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressJSON)))
 
 	err := http.ListenAndServe(cfg.Address, r)
 	if err != nil {

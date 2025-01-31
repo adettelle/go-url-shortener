@@ -15,6 +15,7 @@ const (
 	defaultAddress         = "localhost:8080"
 	defaultURLAddress      = "http://localhost:8080"
 	defaultFileStoragePath = "/tmp/short-url-db.json"
+	defaultDBParams        = "host=host port=port user=myuser password=xxxx dbname=mydb sslmode=disable"
 )
 
 type Config struct {
@@ -23,6 +24,7 @@ type Config struct {
 	// (значение: адрес сервера перед коротким URL, например http://localhost:8000/qsd54gFg)
 	FileStoragePath string `envconfig:"FILE_STORAGE_PATH"` // полное имя файла,
 	// куда сохраняются данные в формате JSON, пустое значение отключает функцию записи на диск
+	DBParams string `envconfig:"DATABASE_DSN"`
 }
 
 // приоритет:
@@ -40,6 +42,7 @@ func New() (*Config, error) {
 	flagAddr := flag.String("a", "", "Net address localhost:port")
 	flagURLAddr := flag.String("b", "", "Result url address http://localhost:port/qsd54gFg")
 	flagFileStoragePath := flag.String("f", "", "full file name for data in json format")
+	flagDBParams := flag.String("d", "", "db connection params")
 
 	flag.Parse()
 
@@ -60,6 +63,13 @@ func New() (*Config, error) {
 		cfg.FileStoragePath = *flagFileStoragePath
 		if cfg.FileStoragePath == "" {
 			cfg.FileStoragePath = defaultFileStoragePath
+		}
+	}
+
+	if cfg.DBParams == "" {
+		cfg.DBParams = *flagDBParams
+		if cfg.DBParams == "" {
+			cfg.DBParams = defaultDBParams
 		}
 	}
 

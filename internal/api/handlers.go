@@ -5,9 +5,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/adettelle/go-url-shortener/internal/config"
+	"github.com/adettelle/go-url-shortener/internal/db"
 	"github.com/adettelle/go-url-shortener/internal/logger"
 	"go.uber.org/zap"
 )
@@ -171,4 +173,15 @@ func (h *Handlers) CreateShortAddressJSON(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *Handlers) CheckConnectionToDB(w http.ResponseWriter, r *http.Request) {
+	log.Println("Checking DB")
+
+	err := db.Connect(h.config.DBParams)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
