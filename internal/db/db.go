@@ -9,21 +9,39 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-func Connect(dbParams string) error {
+type DBConnector interface {
+	Connect() (*sql.DB, error)
+}
+
+type DBConnection struct {
+	DBParams string
+}
+
+func NewDBConnection(params string) *DBConnection {
+	return &DBConnection{
+		DBParams: params,
+	}
+}
+
+func connect(dbParams string) (*sql.DB, error) {
 	log.Println("Connecting to DB", dbParams)
 
 	db, err := sql.Open("pgx", dbParams)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer db.Close()
+	//defer db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := db.PingContext(ctx); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return db, nil
+}
+
+func (dbCon *DBConnection) Connect() (*sql.DB, error) {
+	return connect(dbCon.DBParams)
 }

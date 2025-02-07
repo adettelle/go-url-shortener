@@ -1,3 +1,5 @@
+DB="postgresql://postgres:password@localhost:5433/postgres?sslmode=disable"
+
 test:
 	go test ./...
 
@@ -20,3 +22,12 @@ testcov2: test
 	
 run-server:
 	go run ./cmd/shortener/
+
+migrate-create:
+	./migrate create -ext sql -dir internal/migrator/migration/ -seq $(name)
+
+migrate-up:
+	./migrate -path internal/migrator/migration/ -database $(DB) -verbose up
+	
+migrate-down:
+	./migrate -path internal/migrator/migration/ -database $(DB) -verbose down
