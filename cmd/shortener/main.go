@@ -41,8 +41,8 @@ func initializeServer() error {
 		return err
 	}
 
-	urlApi := api.New(storager, cfg)
-	router := api.NewRouter(storager, urlApi)
+	urlAPI := api.New(storager, cfg)
+	router := api.NewRouter(storager, urlAPI)
 	srv := &http.Server{
 		Addr:    cfg.Address,
 		Handler: router,
@@ -81,7 +81,7 @@ func initializeServer() error {
 		log.Fatal(err) // failure/timeout shutting down the server gracefully
 	}
 
-	urlApi.Finalizing = true
+	urlAPI.Finalizing = true
 
 	err = storager.Finalize()
 	if err != nil {

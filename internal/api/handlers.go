@@ -111,16 +111,16 @@ type shortAddrCreateResponseDTO struct {
 	Result string `json:"result"`
 }
 
-func helper(h *Handlers, body string) (string, error) {
-	shortAddress, err := h.repo.AddAddress(string(body))
-	if err != nil {
-		errlog.Error("error in adding address", zap.Error(err))
-		return "", err
-	}
+// func helper(h *Handlers, body string) (string, error) {
+// 	shortAddress, err := h.repo.AddAddress(string(body))
+// 	if err != nil {
+// 		errlog.Error("error in adding address", zap.Error(err))
+// 		return "", err
+// 	}
 
-	shortenAddress := h.config.URLAddress + "/" + shortAddress
-	return shortenAddress, nil
-}
+// 	shortenAddress := h.config.URLAddress + "/" + shortAddress
+// 	return shortenAddress, nil
+// }
 
 func (h *Handlers) CreateShortAddressJSON(w http.ResponseWriter, r *http.Request) {
 	var requestBody shortAddrCreateRequestDTO
