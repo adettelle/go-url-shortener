@@ -41,12 +41,6 @@ func (s *DBStorage) AddAddress(originalURL string) (string, error) {
 		return "", &storage.EmptyAddressError{}
 	}
 
-	// // TODO повтор
-	// rangeStart := 2
-	// rangeEnd := 10
-	// offset := rangeEnd - rangeStart
-	// randLength := storage.SeededRand.Intn(offset) + rangeStart
-
 	randString, err := helpers.StringWithCharset()
 	if err != nil {
 		return "", err

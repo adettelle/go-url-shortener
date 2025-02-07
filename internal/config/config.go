@@ -16,7 +16,6 @@ const (
 	defaultAddress         = "localhost:8080"
 	defaultURLAddress      = "http://localhost:8080"
 	defaultFileStoragePath = "/tmp/short-url-db.json"
-	// defaultDBParams        = "host=host port=port user=myuser password=xxxx dbname=mydb sslmode=disable"
 )
 
 // type DBConnection struct {

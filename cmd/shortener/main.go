@@ -23,18 +23,12 @@ func main() {
 	}
 }
 
-// var addressStorage *urlstorage.AddressStorage
-
-// var readFromFile bool = true
-
 func initializeServer() error {
 	cfg, err := config.New()
 	if err != nil {
 		return err
 	}
 	log.Println("Config:", cfg)
-
-	// migrator.MustApplyMigrations(cfg.DBParams)
 
 	storager, err := initStorager(cfg)
 	if err != nil {
@@ -47,22 +41,6 @@ func initializeServer() error {
 		Addr:    cfg.Address,
 		Handler: router,
 	}
-	// addressStorage = urlstorage.New(cfg.FileStoragePath)
-
-	// // если файл по адресу "/tmp/metrics-db.json" есть, но пустой (fi.Size() == 0),
-	// // далее проверяем, что именно он записан у нас в config.StoragePath
-	// // и то стираем всё из хранилища addressStorage, т. к. загружать нечего, ведь файл пустой
-	// fi, err := os.Stat(cfg.FileStoragePath)
-	// if err != nil && !os.IsNotExist(err) { // если какая-то другая ошибка
-	// 	log.Fatal(err)
-	// }
-
-	// if fi != nil && fi.Size() > 0 { // !os.IsNotExist(err) &&
-	// 	err := urlstorage.ReadJSONFromFile(cfg.FileStoragePath, storager) // addressStorage
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// }
 
 	go startServer(cfg, storager)
 
@@ -89,33 +67,15 @@ func initializeServer() error {
 		log.Println("unable to write to file")
 	}
 
-	// err = urlstorage.WriteAddressStorageToJSONFile(cfg.FileStoragePath, storager) // addressStorage
-	// if err != nil {
-	// 	log.Println("unable to write to file")
-	// }
-
-	// handlers := api.New(addressStorage, cfg)
-
-	// r := chi.NewRouter()
-	// r.Post("/", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressPlainText)))
-	// r.Get("/{id}", mware.WithLogging(mware.GzipMiddleware(handlers.GetFullAddress)))
-	// r.Post("/api/shorten", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressJSON)))
-
-	// fmt.Printf("Starting server on port %s\n", cfg.Address)
-	// return http.ListenAndServe(cfg.Address, r)
 	return nil
 }
 
-func startServer(cfg *config.Config, storager api.Storager) { // addrStorage *urlstorage.AddressStorage
+func startServer(cfg *config.Config, storager api.Storager) {
 	fmt.Printf("Starting server on port %s\n", cfg.Address)
 
-	handlers := api.New(storager, cfg) // addrStorage
+	handlers := api.New(storager, cfg)
 
-	r := api.NewRouter(storager, handlers) // addrStorage
-	// r := chi.NewRouter()
-	// r.Post("/", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressPlainText)))
-	// r.Get("/{id}", mware.WithLogging(mware.GzipMiddleware(handlers.GetFullAddress)))
-	// r.Post("/api/shorten", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressJSON)))
+	r := api.NewRouter(storager, handlers)
 
 	err := http.ListenAndServe(cfg.Address, r)
 	if err != nil {
@@ -127,7 +87,6 @@ func initStorager(cfg *config.Config) (api.Storager, error) {
 	var storager api.Storager
 
 	if cfg.DBParams != "" {
-		log.Println("!!!!!!!!!!!", cfg.DBParams)
 		db, err := db.NewDBConnection(cfg.DBParams).Connect()
 		if err != nil {
 			log.Fatal(err)
