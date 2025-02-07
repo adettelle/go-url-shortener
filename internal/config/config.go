@@ -16,7 +16,7 @@ const (
 	defaultAddress         = "localhost:8080"
 	defaultURLAddress      = "http://localhost:8080"
 	defaultFileStoragePath = "/tmp/short-url-db.json"
-	defaultDBParams        = "host=host port=port user=myuser password=xxxx dbname=mydb sslmode=disable"
+	// defaultDBParams        = "host=host port=port user=myuser password=xxxx dbname=mydb sslmode=disable"
 )
 
 // type DBConnection struct {
@@ -79,9 +79,9 @@ func New() (*Config, error) {
 
 	if cfg.DBParams == "" {
 		cfg.DBParams = *flagDBParams
-		if cfg.DBParams == "" {
-			cfg.DBParams = defaultDBParams
-		}
+		// if cfg.DBParams == "" {
+		// 	cfg.DBParams = defaultDBParams
+		// }
 	}
 
 	mustBeCorrectAddressFlag(cfg.Address)

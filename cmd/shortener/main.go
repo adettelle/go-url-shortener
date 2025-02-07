@@ -34,7 +34,7 @@ func initializeServer() error {
 	}
 	log.Println("Config:", cfg)
 
-	migrator.MustApplyMigrations(cfg.DBParams)
+	// migrator.MustApplyMigrations(cfg.DBParams)
 
 	storager, err := initStorager(cfg)
 	if err != nil {
@@ -127,6 +127,7 @@ func initStorager(cfg *config.Config) (api.Storager, error) {
 	var storager api.Storager
 
 	if cfg.DBParams != "" {
+		log.Println("!!!!!!!!!!!", cfg.DBParams)
 		db, err := db.NewDBConnection(cfg.DBParams).Connect()
 		if err != nil {
 			log.Fatal(err)
