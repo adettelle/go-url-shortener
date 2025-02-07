@@ -1,9 +1,11 @@
-package storage
+package urlstorage
 
 import (
+	"log"
 	"testing"
 
 	"github.com/adettelle/go-url-shortener/internal/logger"
+	"github.com/adettelle/go-url-shortener/internal/storage"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -11,7 +13,10 @@ import (
 var errlog *zap.Logger = logger.Logger
 
 func TestAddAddress(t *testing.T) {
-	addressStorage := New("")
+	addressStorage, err := New(false, "")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	short1, err := addressStorage.AddAddress("http://localhost:8080/")
 	require.NoError(t, err)
@@ -43,14 +48,21 @@ func TestAddAddress(t *testing.T) {
 }
 
 func TestAddAddressEmptyString(t *testing.T) {
-	addressStorage := New("")
-	myErr := &EmptyAddressError{}
-	_, err := addressStorage.AddAddress("")
+	addressStorage, err := New(false, "")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	myErr := &storage.EmptyAddressError{}
+	_, err = addressStorage.AddAddress("")
 	require.Equal(t, err, myErr)
 }
 
 func TestGetAddress(t *testing.T) {
-	addressStorage := New("")
+	addressStorage, err := New(false, "")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fullAddress := "http://localhost:8080/"
 	name, err := addressStorage.AddAddress(fullAddress)
@@ -61,34 +73,33 @@ func TestGetAddress(t *testing.T) {
 	require.Equal(t, fullAddress, short)
 }
 
-func TestGetAddressUnknownName(t *testing.T) {
-	addressStorage := New("")
+func TestGetAddressUnknownShortURL(t *testing.T) {
+	addressStorage, err := New(false, "")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	unknownName := "aaa"
-	_, err := addressStorage.GetAddress(unknownName)
-	require.Equal(t, err, &NoEntryError{name: unknownName})
+	unknownShortURL := "aaa"
+	_, err = addressStorage.GetAddress(unknownShortURL)
+	require.Equal(t, err, &storage.NoEntryError{ShortURL: unknownShortURL})
 }
 
-func TestStringWithCharset(t *testing.T) {
-	charSet := "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ"
+// func TestStringWithCharset(t *testing.T) {
+// 	newStr, err := helpers.StringWithCharset()
+// 	require.NoError(t, err)
+// 	require.Len(t, newStr, 10)
+// }
 
-	newStr, err := stringWithCharset(10, charSet)
-	require.NoError(t, err)
-	require.Len(t, newStr, 10)
-}
+// func TestStringWithCharsetInvalidLength(t *testing.T) {
+// 	newStr, err := helpers.StringWithCharset() // -10, charSet
+// 	require.Equal(t, err, &storage.InvalidLengthError{})
+// 	require.Empty(t, newStr)
+// }
 
-func TestStringWithCharsetInvalidLength(t *testing.T) {
-	charSet := "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ"
+// func TestStringWithCharsetInvalidCharSet(t *testing.T) {
+// 	// charSet := ""
 
-	newStr, err := stringWithCharset(-10, charSet)
-	require.Equal(t, err, &InvalidLengthError{})
-	require.Empty(t, newStr)
-}
-
-func TestStringWithCharsetInvalidCharSet(t *testing.T) {
-	charSet := ""
-
-	newStr, err := stringWithCharset(10, charSet)
-	require.Equal(t, err, &InvalidCharSetError{})
-	require.Empty(t, newStr)
-}
+// 	newStr, err := helpers.StringWithCharset() // 10, charSet
+// 	require.Equal(t, err, &storage.InvalidCharSetError{})
+// 	require.Empty(t, newStr)
+// }

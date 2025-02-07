@@ -1,4 +1,4 @@
-package storage
+package urlstorage
 
 import (
 	"encoding/json"

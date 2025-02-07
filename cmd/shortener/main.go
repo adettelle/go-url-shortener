@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,48 +10,39 @@ import (
 
 	"github.com/adettelle/go-url-shortener/internal/api"
 	"github.com/adettelle/go-url-shortener/internal/config"
-	"github.com/adettelle/go-url-shortener/internal/helpers"
-	"github.com/adettelle/go-url-shortener/internal/storage"
+	"github.com/adettelle/go-url-shortener/internal/db"
+	"github.com/adettelle/go-url-shortener/internal/migrator"
+	"github.com/adettelle/go-url-shortener/internal/storage/dbstorage"
+	"github.com/adettelle/go-url-shortener/internal/storage/urlstorage"
 )
 
 func main() {
-	err := initialize()
+	err := initializeServer()
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-var addressStorage *storage.AddressStorage
-
-// var readFromFile bool = true
-
-func initialize() error {
+func initializeServer() error {
 	cfg, err := config.New()
 	if err != nil {
 		return err
 	}
 	log.Println("Config:", cfg)
 
-	addressStorage = storage.New(cfg.FileStoragePath)
-
-	// если файл по адресу "/tmp/metrics-db.json" есть, но пустой (fi.Size() == 0),
-	// далее проверяем, что именно он записан у нас в config.StoragePath
-	// и то стираем всё из хранилища addressStorage, т. к. загружать нечего, ведь файл пустой
-	fi, err := os.Stat(cfg.FileStoragePath)
-	if err != nil && !os.IsNotExist(err) { // если какая-то другая ошибка
-		fmt.Println("--------")
-		log.Fatal(err)
+	storager, err := initStorager(cfg)
+	if err != nil {
+		return err
 	}
 
-	if fi != nil && fi.Size() > 0 { // !os.IsNotExist(err) &&
-		fmt.Println("!!!!!!!!!!")
-		err := helpers.ReadJSONFromFile(cfg.FileStoragePath, addressStorage)
-		if err != nil {
-			log.Fatal(err)
-		}
+	urlAPI := api.New(storager, cfg)
+	router := api.NewRouter(storager, urlAPI)
+	srv := &http.Server{
+		Addr:    cfg.Address,
+		Handler: router,
 	}
 
-	go startServer(cfg, addressStorage)
+	go startServer(cfg, storager)
 
 	// создаю канал, который принимает объект типа os.Signal.
 	c := make(chan os.Signal, 1)
@@ -62,36 +54,59 @@ func initialize() error {
 	// Когда в канале что-то повится, мы пойдем дальше по коду
 	s := <-c
 	log.Printf("got termination signal: %s. Grathful shutdown", s)
-	err = storage.WriteAddressStorageToJSONFile(cfg.FileStoragePath, addressStorage)
+
+	if err := srv.Shutdown(context.Background()); err != nil {
+		log.Fatal(err) // failure/timeout shutting down the server gracefully
+	}
+
+	urlAPI.Finalizing = true
+
+	err = storager.Finalize()
 	if err != nil {
+		log.Println(err)
 		log.Println("unable to write to file")
 	}
 
-	// handlers := api.New(addressStorage, cfg)
-
-	// r := chi.NewRouter()
-	// r.Post("/", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressPlainText)))
-	// r.Get("/{id}", mware.WithLogging(mware.GzipMiddleware(handlers.GetFullAddress)))
-	// r.Post("/api/shorten", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressJSON)))
-
-	// fmt.Printf("Starting server on port %s\n", cfg.Address)
-	// return http.ListenAndServe(cfg.Address, r)
 	return nil
 }
 
-func startServer(cfg *config.Config, addrStorage *storage.AddressStorage) {
+func startServer(cfg *config.Config, storager api.Storager) {
 	fmt.Printf("Starting server on port %s\n", cfg.Address)
 
-	handlers := api.New(addrStorage, cfg)
+	handlers := api.New(storager, cfg)
 
-	r := api.NewRouter(addrStorage, handlers)
-	// r := chi.NewRouter()
-	// r.Post("/", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressPlainText)))
-	// r.Get("/{id}", mware.WithLogging(mware.GzipMiddleware(handlers.GetFullAddress)))
-	// r.Post("/api/shorten", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressJSON)))
+	r := api.NewRouter(storager, handlers)
 
 	err := http.ListenAndServe(cfg.Address, r)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func initStorager(cfg *config.Config) (api.Storager, error) {
+	var storager api.Storager
+
+	if cfg.DBParams != "" {
+		db, err := db.NewDBConnection(cfg.DBParams).Connect()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		storager = &dbstorage.DBStorage{
+			Ctx: context.Background(),
+			DB:  db,
+		}
+
+		migrator.MustApplyMigrations(cfg.DBParams)
+	} else {
+		var urlSt *urlstorage.AddressStorage
+		log.Println("cfg.StoragePath in initStorager:", cfg.FileStoragePath)
+		urlSt, err := urlstorage.New(cfg.ShouldRestore(), cfg.FileStoragePath)
+		if err != nil {
+			return nil, err
+		}
+
+		storager = urlSt
+	}
+	return storager, nil
 }

@@ -20,19 +20,23 @@ var errlog *zap.Logger = logger.Logger
 // such as PathStorage. It describes operations to store, retrieve,
 // check for existence, and delete a "address" entity.
 type Storager interface {
-	GetAddress(name string) (string, error)
-	AddAddress(fullPath string) (string, error)
+	GetAddress(shortURL string) (string, error)
+	AddAddress(originalURL string) (string, error) // full address
+	Finalize() error                               // отрабатывает завершение приложения (при штатном завершении работы)
 }
 
 type Handlers struct {
-	repo   Storager
-	config *config.Config
+	repo       Storager
+	config     *config.Config
+	DBCon      db.DBConnector
+	Finalizing bool // true означает, что надо делать graceful shutdowm
 }
 
 func New(s Storager, cfg *config.Config) *Handlers {
 	return &Handlers{
 		repo:   s,
 		config: cfg,
+		DBCon:  db.NewDBConnection(cfg.DBParams),
 	}
 }
 
@@ -107,16 +111,16 @@ type shortAddrCreateResponseDTO struct {
 	Result string `json:"result"`
 }
 
-func helper(h *Handlers, body string) (string, error) {
-	shortAddress, err := h.repo.AddAddress(string(body))
-	if err != nil {
-		errlog.Error("error in adding address", zap.Error(err))
-		return "", err
-	}
+// func helper(h *Handlers, body string) (string, error) {
+// 	shortAddress, err := h.repo.AddAddress(string(body))
+// 	if err != nil {
+// 		errlog.Error("error in adding address", zap.Error(err))
+// 		return "", err
+// 	}
 
-	shortenAddress := h.config.URLAddress + "/" + shortAddress
-	return shortenAddress, nil
-}
+// 	shortenAddress := h.config.URLAddress + "/" + shortAddress
+// 	return shortenAddress, nil
+// }
 
 func (h *Handlers) CreateShortAddressJSON(w http.ResponseWriter, r *http.Request) {
 	var requestBody shortAddrCreateRequestDTO
@@ -178,7 +182,7 @@ func (h *Handlers) CreateShortAddressJSON(w http.ResponseWriter, r *http.Request
 func (h *Handlers) CheckConnectionToDB(w http.ResponseWriter, r *http.Request) {
 	log.Println("Checking DB")
 
-	err := db.Connect(h.config.DBParams)
+	_, err := h.DBCon.Connect()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
