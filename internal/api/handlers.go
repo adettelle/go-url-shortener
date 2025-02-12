@@ -229,7 +229,6 @@ func (h *Handlers) PostBatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(requestBody) == 0 {
-		// проверить на пустоту requestBody len == 0, если да то я возвращаю пустой массив
 		result = []PostBatchResponseDTO{}
 	}
 	/*
@@ -256,10 +255,9 @@ func (h *Handlers) PostBatch(w http.ResponseWriter, r *http.Request) {
 			ShortURL:      shortURL,
 		}
 		result = append(result, res)
-		// в этом цикле сразу писать в массив, который я потом верну
 	}
 	w.Header().Set("Content-Type", "application/json")
-	// respDTO := PostBatchResponseDTO{ShortURL: shortURL}
+
 	resp, err := json.Marshal(result) // respDTO
 	if err != nil {
 		errlog.Error("error in marshalling json", zap.Error(err))
@@ -267,13 +265,10 @@ func (h *Handlers) PostBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	// w.Header().Set("Content-Type", "application/json")
 
 	_, err = w.Write(resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	// w.WriteHeader(http.StatusCreated)
-	// w.Header().Set("Content-Type", "application/json")
 }
