@@ -50,7 +50,7 @@ func (h *Handlers) CreateShortAddressPlainText(w http.ResponseWriter, r *http.Re
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		errlog.Error("error in writing reading body", zap.Error(err))
+		errlog.Error("error in reading body", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -134,7 +134,7 @@ func (h *Handlers) CreateShortAddressJSON(w http.ResponseWriter, r *http.Request
 	// Read the request body
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
-		errlog.Error("error in writing reading body", zap.Error(err))
+		errlog.Error("error in reading body", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -187,5 +187,91 @@ func (h *Handlers) CheckConnectionToDB(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
+}
+
+type PostBatchRequestDTO struct {
+	CorrelationID string `json:"correlation_id"`
+	OriginalURL   string `json:"original_url"`
+}
+
+type PostBatchResponseDTO struct {
+	CorrelationID string `json:"correlation_id"`
+	ShortURL      string `json:"short_url"`
+}
+
+// PostBatch processes an HTTP POST request
+// that contains a batch of urls in JSON format.
+func (h *Handlers) PostBatch(w http.ResponseWriter, r *http.Request) {
+	var requestBody []PostBatchRequestDTO
+	var buf bytes.Buffer
+	var shortURL string
+	var result []PostBatchResponseDTO
+
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Read the request body
+	_, err := buf.ReadFrom(r.Body)
+	if err != nil {
+		errlog.Error("error in reading body", zap.Error(err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Deserialize JSON into requestBody
+	if err = json.Unmarshal(buf.Bytes(), &requestBody); err != nil {
+		errlog.Error("error in unmarshalling json", zap.Error(err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if len(requestBody) == 0 {
+		// проверить на пустоту requestBody len == 0, если да то я возвращаю пустой массив
+		result = []PostBatchResponseDTO{}
+	}
+	/*
+		shortenAddress, err := helper(h, requestBody.URL)
+		if err != nil {
+			errlog.Error("error in adding address", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	*/
+
+	for _, elem := range requestBody {
+		charStr, err := h.repo.AddAddress(elem.OriginalURL) // charStr is: vN
+		if err != nil {
+			errlog.Error("error in adding address", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		shortURL = h.config.URLAddress + "/" + charStr // http://localhost:8000/vN
+
+		res := PostBatchResponseDTO{
+			CorrelationID: elem.CorrelationID,
+			ShortURL:      shortURL,
+		}
+		result = append(result, res)
+
+		// в этом цикле сразу писать в массив, который я потом верну
+	}
+
+	// respDTO := PostBatchResponseDTO{ShortURL: shortURL}
+	resp, err := json.Marshal(result) // respDTO
+	if err != nil {
+		errlog.Error("error in marshalling json", zap.Error(err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	_, err = w.Write(resp)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
