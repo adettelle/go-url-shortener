@@ -256,7 +256,6 @@ func (h *Handlers) PostBatch(w http.ResponseWriter, r *http.Request) {
 			ShortURL:      shortURL,
 		}
 		result = append(result, res)
-
 		// в этом цикле сразу писать в массив, который я потом верну
 	}
 
@@ -267,11 +266,13 @@ func (h *Handlers) PostBatch(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	w.WriteHeader(http.StatusCreated)
+
 	_, err = w.Write(resp)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	// w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
 }
