@@ -19,9 +19,9 @@ func NewURLRepo(ctx context.Context, db *sql.DB) *DBStorage {
 	return &DBStorage{Ctx: ctx, DB: db}
 }
 
-func (s *DBStorage) GetAddress(name string) (string, error) {
-	sqlStatement := "SELECT original_url where short_url = $1"
-	row := s.DB.QueryRowContext(s.Ctx, sqlStatement, name)
+func (s *DBStorage) GetAddress(shortURL string) (string, error) {
+	sqlStatement := "SELECT original_url from url_mapping  where short_url = $1"
+	row := s.DB.QueryRowContext(s.Ctx, sqlStatement, shortURL)
 
 	// переменная для чтения результата
 	var originalURL string

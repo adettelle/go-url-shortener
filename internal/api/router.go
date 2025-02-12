@@ -12,6 +12,7 @@ func NewRouter(storager Storager, handlers *Handlers) *chi.Mux {
 	r.Get("/{id}", mware.WithLogging(mware.GzipMiddleware(handlers.GetFullAddress)))
 	r.Post("/api/shorten", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressJSON)))
 	r.Get("/ping", mware.WithLogging(mware.GzipMiddleware(handlers.CheckConnectionToDB)))
+	r.Post("/api/shorten/batch", mware.WithLogging(mware.GzipMiddleware(handlers.PostBatch)))
 
 	return r
 }
