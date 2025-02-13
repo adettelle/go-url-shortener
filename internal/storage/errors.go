@@ -2,9 +2,9 @@ package storage
 
 import "fmt"
 
-type EmptyAddressError struct{}
+type EmptyOriginalURLError struct{}
 
-func (e *EmptyAddressError) Error() string {
+func (e *EmptyOriginalURLError) Error() string {
 	return "Empty full address"
 }
 
@@ -26,4 +26,20 @@ type NoEntryError struct {
 
 func (e *NoEntryError) Error() string {
 	return fmt.Sprintf("No Entry for shortURL %s", e.ShortURL)
+}
+
+type OriginalURLExistsErr struct {
+	// ShortURL    string
+	OriginalURL string
+}
+
+func (e *OriginalURLExistsErr) Error() string {
+	return fmt.Sprintf("originalURL is already exists: %s", e.OriginalURL) // , e.ShortURL
+}
+
+func NewOriginalURLExistsErr(shortURL string, originalURL string) *OriginalURLExistsErr {
+	return &OriginalURLExistsErr{
+		// ShortURL:    shortURL,
+		OriginalURL: originalURL,
+	}
 }

@@ -32,7 +32,7 @@ func New(shouldRestore bool, fileStoragePath string) (*AddressStorage, error) {
 }
 
 // возращает полный url по ключу (короткому url)
-func (a *AddressStorage) GetAddress(shortURL string) (string, error) {
+func (a *AddressStorage) GetOriginalURLByShortURL(shortURL string) (string, error) {
 	if addr, ok := a.Addresses[shortURL]; ok {
 		return addr, nil
 	}
@@ -42,9 +42,9 @@ func (a *AddressStorage) GetAddress(shortURL string) (string, error) {
 	}
 }
 
-func (a *AddressStorage) AddAddress(originalURL string) (string, error) {
+func (a *AddressStorage) AddOriginalURL(originalURL string) (string, error) {
 	if originalURL == "" {
-		return "", &storage.EmptyAddressError{}
+		return "", &storage.EmptyOriginalURLError{}
 	}
 
 	randString, err := helpers.StringWithCharset()
@@ -71,4 +71,14 @@ func (a *AddressStorage) AddAddress(originalURL string) (string, error) {
 func (a *AddressStorage) Finalize() error {
 	log.Println("ms.FileName:", a.FileName)
 	return WriteAddressStorageToJSONFile(a.FileName, a)
+}
+
+func (a *AddressStorage) GetShortURLByOriginalURL(originalURL string) (string, error) {
+	for short, origin := range a.Addresses {
+		if origin == originalURL {
+			return short, storage.NewOriginalURLExistsErr(short, origin)
+		}
+	}
+
+	return "", nil
 }
