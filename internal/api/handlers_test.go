@@ -14,6 +14,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO написать тесты на все хэндлеры
+// TODO тесты на взаимодействие с БД и на ошибки !!!
+
 func TestCreateShortAddressPlainText(t *testing.T) {
 	// создаём контроллер
 	ctrl := gomock.NewController(t)
@@ -33,7 +36,8 @@ func TestCreateShortAddressPlainText(t *testing.T) {
 	reqURL := "http://" + cfg.Address + "/"
 	id := "qqVjJVf"
 
-	mockStorage.EXPECT().AddAddress(strBody).Return(reqURL+id, nil)
+	mockStorage.EXPECT().GetShortURLByOriginalURL(strBody).Return("", nil)
+	mockStorage.EXPECT().AddOriginalURL(strBody).Return(reqURL+id, nil)
 
 	request, err := http.NewRequest(http.MethodPost, reqURL, strings.NewReader(strBody))
 	require.NoError(t, err)
@@ -62,7 +66,7 @@ func TestGetFullAddress(t *testing.T) {
 	reqURL := "http://localhost:8080/"
 	header := "https://practicum.yandex.ru/"
 
-	mockStorage.EXPECT().GetAddress(id).Return(header, nil)
+	mockStorage.EXPECT().GetOriginalURLByShortURL(id).Return(header, nil)
 
 	request, err := http.NewRequest(http.MethodGet, reqURL, nil)
 	require.NoError(t, err)
@@ -92,11 +96,12 @@ func TestCreateShortAddressJson(t *testing.T) {
 		config: cfg,
 	}
 
-	reqBody := shortAddrCreateRequestDTO{URL: "https://practicum.yandex.ru/"}
+	reqBody := shortAddrCreateRequestDTO{OriginalURL: "https://practicum.yandex.ru/"}
 	reqURL := "http://" + cfg.Address + "/api/shorten"
 	id := "qqVjJVf"
 
-	mockStorage.EXPECT().AddAddress(reqBody.URL).Return(reqURL+id, nil)
+	mockStorage.EXPECT().GetShortURLByOriginalURL(reqBody.OriginalURL).Return("", nil)
+	mockStorage.EXPECT().AddOriginalURL(reqBody.OriginalURL).Return(reqURL+id, nil)
 
 	request, err := requests.
 		URL(reqURL).

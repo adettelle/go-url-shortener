@@ -12,17 +12,17 @@ import (
 
 var errlog *zap.Logger = logger.Logger
 
-func TestAddAddress(t *testing.T) {
+func TestAddOriginalURL(t *testing.T) {
 	addressStorage, err := New(false, "")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	short1, err := addressStorage.AddAddress("http://localhost:8080/")
+	short1, err := addressStorage.AddOriginalURL("http://localhost:8080/")
 	require.NoError(t, err)
 	for elem := range short1 {
 		if elem >= 'a' && elem <= 'z' || elem >= 'A' && elem <= 'Z' {
-			fullAddress1, err := addressStorage.GetAddress(short1)
+			fullAddress1, err := addressStorage.GetOriginalURLByShortURL(short1)
 			require.NoError(t, err)
 			require.Equal(t, "http://localhost:8080/", fullAddress1)
 		} else {
@@ -32,11 +32,11 @@ func TestAddAddress(t *testing.T) {
 		}
 	}
 
-	short2, err := addressStorage.AddAddress("http://localhost:8080/")
+	short2, err := addressStorage.AddOriginalURL("http://localhost:8080/")
 	require.NoError(t, err)
 	for elem := range short2 {
 		if elem >= 'a' && elem <= 'z' || elem >= 'A' && elem <= 'Z' {
-			fullAddress2, err := addressStorage.GetAddress(short2)
+			fullAddress2, err := addressStorage.GetOriginalURLByShortURL(short2)
 			require.NoError(t, err)
 			require.Equal(t, "http://localhost:8080/", fullAddress2)
 		} else {
@@ -47,40 +47,40 @@ func TestAddAddress(t *testing.T) {
 
 }
 
-func TestAddAddressEmptyString(t *testing.T) {
+func TestAddOriginalURLEmptyString(t *testing.T) {
 	addressStorage, err := New(false, "")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	myErr := &storage.EmptyAddressError{}
-	_, err = addressStorage.AddAddress("")
+	myErr := &storage.EmptyOriginalURLError{}
+	_, err = addressStorage.AddOriginalURL("")
 	require.Equal(t, err, myErr)
 }
 
-func TestGetAddress(t *testing.T) {
+func TestGetOriginalURLByShortURL(t *testing.T) {
 	addressStorage, err := New(false, "")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fullAddress := "http://localhost:8080/"
-	name, err := addressStorage.AddAddress(fullAddress)
+	name, err := addressStorage.AddOriginalURL(fullAddress)
 	require.NoError(t, err)
 
-	short, err := addressStorage.GetAddress(name)
+	short, err := addressStorage.GetOriginalURLByShortURL(name)
 	require.NoError(t, err)
 	require.Equal(t, fullAddress, short)
 }
 
-func TestGetAddressUnknownShortURL(t *testing.T) {
+func TestGetOriginalURLByShortURLUnknownShortURL(t *testing.T) {
 	addressStorage, err := New(false, "")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	unknownShortURL := "aaa"
-	_, err = addressStorage.GetAddress(unknownShortURL)
+	_, err = addressStorage.GetOriginalURLByShortURL(unknownShortURL)
 	require.Equal(t, err, &storage.NoEntryError{ShortURL: unknownShortURL})
 }
 

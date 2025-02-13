@@ -19,7 +19,7 @@ func NewURLRepo(ctx context.Context, db *sql.DB) *DBStorage {
 	return &DBStorage{Ctx: ctx, DB: db}
 }
 
-func (s *DBStorage) GetAddress(shortURL string) (string, error) {
+func (s *DBStorage) GetOriginalURLByShortURL(shortURL string) (string, error) {
 	sqlStatement := "SELECT original_url from url_mapping  where short_url = $1"
 	row := s.DB.QueryRowContext(s.Ctx, sqlStatement, shortURL)
 
@@ -34,11 +34,11 @@ func (s *DBStorage) GetAddress(shortURL string) (string, error) {
 	return originalURL, nil
 }
 
-func (s *DBStorage) AddAddress(originalURL string) (string, error) {
+func (s *DBStorage) AddOriginalURL(originalURL string) (string, error) {
 	log.Println("Writing to DB")
 
 	if originalURL == "" {
-		return "", &storage.EmptyAddressError{}
+		return "", &storage.EmptyOriginalURLError{}
 	}
 
 	randString, err := helpers.StringWithCharset()
@@ -61,4 +61,24 @@ func (s *DBStorage) AddAddress(originalURL string) (string, error) {
 
 func (s *DBStorage) Finalize() error {
 	return nil
+}
+
+// ExistsOriginalURL returns shortURL if originalURL exists
+func (s *DBStorage) GetShortURLByOriginalURL(originalURL string) (string, error) {
+	sqlStatement := "SELECT short_url from url_mapping  where original_url = $1;"
+	row := s.DB.QueryRowContext(s.Ctx, sqlStatement, originalURL)
+
+	// переменная для чтения результата
+	var shortURL string
+
+	err := row.Scan(&shortURL)
+	if err != nil {
+		return "", err
+	}
+
+	if shortURL != "" { // errors.Is(err, &storage.OriginalURLExistsErr{})
+		return shortURL, storage.NewOriginalURLExistsErr(shortURL, originalURL)
+	}
+
+	return shortURL, nil
 }

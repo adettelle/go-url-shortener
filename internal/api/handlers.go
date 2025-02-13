@@ -11,6 +11,7 @@ import (
 	"github.com/adettelle/go-url-shortener/internal/config"
 	"github.com/adettelle/go-url-shortener/internal/db"
 	"github.com/adettelle/go-url-shortener/internal/logger"
+	"github.com/adettelle/go-url-shortener/internal/storage"
 	"go.uber.org/zap"
 )
 
@@ -20,9 +21,10 @@ var errlog *zap.Logger = logger.Logger
 // such as PathStorage. It describes operations to store, retrieve,
 // check for existence, and delete a "address" entity.
 type Storager interface {
-	GetAddress(shortURL string) (string, error)
-	AddAddress(originalURL string) (string, error) // full address
-	Finalize() error                               // отрабатывает завершение приложения (при штатном завершении работы)
+	GetOriginalURLByShortURL(shortURL string) (string, error)
+	AddOriginalURL(originalURL string) (string, error) // full address
+	Finalize() error                                   // отрабатывает завершение приложения (при штатном завершении работы)
+	GetShortURLByOriginalURL(originalURL string) (string, error)
 }
 
 type Handlers struct {
@@ -63,18 +65,33 @@ func (h *Handlers) CreateShortAddressPlainText(w http.ResponseWriter, r *http.Re
 			return
 		}
 	*/
-	shortAddress, err := h.repo.AddAddress(string(body))
-	if err != nil {
-		errlog.Error("error in adding address", zap.Error(err))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+
+	var urlID string
+	var statusCode int
+
+	// проверим, есть ли уже пара short/origin url
+	urlID, err = h.repo.GetShortURLByOriginalURL(string(body))
+
+	_, ok := err.(*storage.OriginalURLExistsErr)
+	if ok {
+		statusCode = http.StatusConflict
 	}
 
-	shortenAddress := h.config.URLAddress + "/" + shortAddress
+	if urlID == "" {
+		urlID, err = h.repo.AddOriginalURL(string(body))
+		if err != nil {
+			errlog.Error("error in adding address", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		statusCode = http.StatusCreated
+	}
+
+	shortURL := h.config.URLAddress + "/" + urlID
 
 	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusCreated)
-	_, err = w.Write([]byte(shortenAddress))
+	w.WriteHeader(statusCode)
+	_, err = w.Write([]byte(shortURL))
 	if err != nil {
 		errlog.Error("error in writing response", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -88,7 +105,7 @@ func (h *Handlers) GetFullAddress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := r.PathValue("id")
-	fullAddress, err := h.repo.GetAddress(id)
+	fullAddress, err := h.repo.GetOriginalURLByShortURL(id)
 	if err != nil {
 		errlog.Error("error in getting address", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -104,7 +121,7 @@ func (h *Handlers) GetFullAddress(w http.ResponseWriter, r *http.Request) {
 }
 
 type shortAddrCreateRequestDTO struct {
-	URL string `json:"url"`
+	OriginalURL string `json:"url"`
 }
 
 type shortAddrCreateResponseDTO struct {
@@ -112,7 +129,7 @@ type shortAddrCreateResponseDTO struct {
 }
 
 // func helper(h *Handlers, body string) (string, error) {
-// 	shortAddress, err := h.repo.AddAddress(string(body))
+// 	shortAddress, err := h.repo.AddOriginalURL(string(body))
 // 	if err != nil {
 // 		errlog.Error("error in adding address", zap.Error(err))
 // 		return "", err
@@ -140,7 +157,9 @@ func (h *Handlers) CreateShortAddressJSON(w http.ResponseWriter, r *http.Request
 	}
 
 	// Deserialize JSON into requestBody
-	if err = json.Unmarshal(buf.Bytes(), &requestBody); err != nil {
+	err = json.Unmarshal(buf.Bytes(), &requestBody)
+
+	if err != nil {
 		errlog.Error("error in unmarshalling json", zap.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -154,17 +173,31 @@ func (h *Handlers) CreateShortAddressJSON(w http.ResponseWriter, r *http.Request
 			return
 		}
 	*/
-	shortAddress, err := h.repo.AddAddress(requestBody.URL) // shortAddress is: vN
-	if err != nil {
-		errlog.Error("error in adding address", zap.Error(err))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	var urlID string
+	var statusCode int
+
+	// проверим, есть ли уже пара short/origin url
+	urlID, err = h.repo.GetShortURLByOriginalURL(requestBody.OriginalURL)
+
+	_, ok := err.(*storage.OriginalURLExistsErr)
+	if ok {
+		statusCode = http.StatusConflict
 	}
 
-	shortenAddress := h.config.URLAddress + "/" + shortAddress // http://localhost:8000/vN
+	if urlID == "" {
+		urlID, err = h.repo.AddOriginalURL(requestBody.OriginalURL) // urlID is: vN
+		if err != nil {
+			errlog.Error("error in adding address", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		statusCode = http.StatusCreated
+	}
+
+	shortenAddress := h.config.URLAddress + "/" + urlID // http://localhost:8000/vN
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(statusCode)
 	respDTO := shortAddrCreateResponseDTO{Result: shortenAddress}
 	resp, err := json.Marshal(respDTO)
 	if err != nil {
@@ -240,15 +273,32 @@ func (h *Handlers) PostBatch(w http.ResponseWriter, r *http.Request) {
 		}
 	*/
 
+	var urlID string
+	var statusCode int
+
 	for _, elem := range requestBody {
-		charStr, err := h.repo.AddAddress(elem.OriginalURL) // charStr is: vN
-		if err != nil {
-			errlog.Error("error in adding address", zap.Error(err))
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+
+		// проверим, есть ли уже пара short/origin url
+		urlID, err = h.repo.GetShortURLByOriginalURL(elem.OriginalURL)
+
+		_, ok := err.(*storage.OriginalURLExistsErr)
+		if ok {
+			statusCode = http.StatusConflict
 		}
 
-		shortURL = h.config.URLAddress + "/" + charStr // http://localhost:8000/vN
+		if urlID == "" {
+			urlID, err = h.repo.AddOriginalURL(elem.OriginalURL) // urlID is: vN
+			if err != nil {
+				errlog.Error("error in adding address", zap.Error(err))
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			if statusCode == 0 {
+				statusCode = http.StatusCreated
+			}
+		}
+
+		shortURL = h.config.URLAddress + "/" + urlID // http://localhost:8000/vN
 
 		res := PostBatchResponseDTO{
 			CorrelationID: elem.CorrelationID,
@@ -264,7 +314,7 @@ func (h *Handlers) PostBatch(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(statusCode)
 
 	_, err = w.Write(resp)
 	if err != nil {
