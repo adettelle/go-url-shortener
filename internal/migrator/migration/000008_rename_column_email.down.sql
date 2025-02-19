@@ -1,0 +1,1 @@
+alter table customer rename column  login to email;

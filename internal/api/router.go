@@ -5,14 +5,26 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func NewRouter(storager Storager, handlers *Handlers) *chi.Mux {
+// storager Storager, , urlHandlers *URLsHandlers
+func NewRouter(handlers *CustomerHandlers, urlHandlers *Handlers) *chi.Mux {
 	r := chi.NewMux()
 
-	r.Post("/", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressPlainText)))
-	r.Get("/{id}", mware.WithLogging(mware.GzipMiddleware(handlers.GetFullAddress)))
-	r.Post("/api/shorten", mware.WithLogging(mware.GzipMiddleware(handlers.CreateShortAddressJSON)))
-	r.Get("/ping", mware.WithLogging(mware.GzipMiddleware(handlers.CheckConnectionToDB)))
-	r.Post("/api/shorten/batch", mware.WithLogging(mware.GzipMiddleware(handlers.PostBatch)))
+	// withAuth wraps a given HTTP handler with authentication middleware.
+	// withAuth := func(h http.HandlerFunc) http.HandlerFunc {
+	// 	return mware.AuthMwr(h, handlers.SignKey, jwtChecker)
+	// }
+
+	// User authentication routes
+	r.Post("/api/user/register", handlers.RegisterCustomer)
+	r.Post("/api/user/login", handlers.Login)
+
+	// URLs management routes
+	r.Post("/", mware.WithLogging(mware.GzipMiddleware(urlHandlers.CreateShortAddressPlainText)))
+	r.Get("/{id}", mware.WithLogging(mware.GzipMiddleware(urlHandlers.GetFullAddress)))
+	r.Post("/api/shorten", mware.WithLogging(mware.GzipMiddleware(urlHandlers.CreateShortAddressJSON)))
+	r.Get("/ping", mware.WithLogging(mware.GzipMiddleware(urlHandlers.CheckConnectionToDB)))
+	r.Post("/api/shorten/batch", mware.WithLogging(mware.GzipMiddleware(urlHandlers.PostBatch)))
+	r.Get("/api/user/urls", mware.WithLogging(mware.GzipMiddleware(urlHandlers.GetAllURLS)))
 
 	return r
 }

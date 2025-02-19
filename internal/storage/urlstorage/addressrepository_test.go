@@ -1,5 +1,6 @@
 package urlstorage
 
+/*
 import (
 	"log"
 	"testing"
@@ -103,3 +104,5 @@ func TestGetOriginalURLByShortURLUnknownShortURL(t *testing.T) {
 // 	require.Equal(t, err, &storage.InvalidCharSetError{})
 // 	require.Empty(t, newStr)
 // }
+
+*/

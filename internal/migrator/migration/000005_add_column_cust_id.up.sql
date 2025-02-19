@@ -1,0 +1,1 @@
+alter table url_mapping add column customer_id integer;

@@ -1,0 +1,1 @@
+ALTER TABLE url_mapping DROP COLUMN IF EXISTS customer_id;

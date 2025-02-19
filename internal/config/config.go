@@ -35,6 +35,7 @@ type Config struct {
 	// куда сохраняются данные в формате JSON, пустое значение отключает функцию записи на диск
 	DBParams string `envconfig:"DATABASE_DSN"`
 	Restore  bool   `json:"restore"` // по умолчанию true
+	SignKey  string `envconfig:"SIGN_KEY"`
 }
 
 // приоритет:
