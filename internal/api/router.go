@@ -15,8 +15,10 @@ func NewRouter(handlers *CustomerHandlers, urlHandlers *Handlers) *chi.Mux {
 	// }
 
 	// User authentication routes
-	r.Post("/api/user/register", handlers.RegisterCustomer)
-	r.Post("/api/user/login", handlers.Login)
+	if handlers != nil {
+		r.Post("/api/user/register", handlers.RegisterCustomer)
+		r.Post("/api/user/login", handlers.Login)
+	}
 
 	// URLs management routes
 	r.Post("/", mware.WithLogging(mware.GzipMiddleware(urlHandlers.CreateShortAddressPlainText)))

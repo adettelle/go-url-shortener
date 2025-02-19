@@ -16,6 +16,7 @@ import (
 	"github.com/adettelle/go-url-shortener/internal/storage/custrepo"
 	"github.com/adettelle/go-url-shortener/internal/storage/dbstorage"
 	"github.com/adettelle/go-url-shortener/internal/storage/urlstorage"
+	"github.com/go-chi/chi/v5"
 )
 
 func main() {
@@ -32,19 +33,6 @@ func initializeServer() error {
 	}
 	log.Println("Config:", cfg)
 
-	sqlDB, err := initDB(cfg)
-	if err != nil {
-		log.Println(err)
-		log.Println("unable to start DB")
-	}
-
-	customerRepo := custrepo.NewCustomerRepo(sqlDB)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	custHandlers := api.NewCustomerHandlers(customerRepo, []byte(cfg.SignKey), cfg)
-
 	storager, err := initStorager(cfg)
 	if err != nil {
 		return err
@@ -52,13 +40,34 @@ func initializeServer() error {
 
 	urlAPI := api.New(storager, cfg)
 
-	router := api.NewRouter(custHandlers, urlAPI) //storager, urlAPI
+	var router *chi.Mux
+
+	if cfg.DBParams != "" {
+		sqlDB, err := initDB(cfg)
+		if err != nil {
+			log.Println(err)
+			log.Println("unable to start DB")
+		}
+
+		customerRepo := custrepo.NewCustomerRepo(sqlDB)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		custHandlers := api.NewCustomerHandlers(customerRepo, []byte(cfg.SignKey), cfg)
+		router = api.NewRouter(custHandlers, urlAPI) //storager, urlAPI
+	} else {
+		router = api.NewRouter(nil, urlAPI)
+	}
+
+	//router := api.NewRouter(custHandlers, urlAPI) //storager, urlAPI
 	srv := &http.Server{
 		Addr:    cfg.Address,
 		Handler: router,
 	}
 
-	go startServer(cfg, custHandlers, urlAPI) // , storager
+	log.Printf("Starting server at %s", srv.Addr)
+	go srv.ListenAndServe() // startServer(cfg, custHandlers, urlAPI) // , storager
 
 	// создаю канал, который принимает объект типа os.Signal.
 	c := make(chan os.Signal, 1)
@@ -86,29 +95,31 @@ func initializeServer() error {
 	return nil
 }
 
-func startServer(cfg *config.Config, handlers *api.CustomerHandlers, urlApi *api.Handlers) { // , storager api.Storager
-	fmt.Printf("Starting server on port %s\n", cfg.Address)
+/*
+func startServer(cfg *config.Config, handlers *api.CustomerHandlers, urlAPI *api.Handlers) { // , storager api.Storager
 
-	// handlers := api.New(storager, cfg)
-	// sqlDB, err := initDB(cfg)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	log.Println("unable to start DB")
-	// }
-	//customerRepo := custrepo.NewCustomerRepo(sqlDB)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	//handlers := api.NewCustomerHandlers(customerRepo, []byte(cfg.SignKey), cfg)
+		fmt.Printf("Starting server on port %s\n", cfg.Address)
 
-	r := api.NewRouter(handlers, urlApi) // storager, handlers
+		// handlers := api.New(storager, cfg)
+		// sqlDB, err := initDB(cfg)
+		// if err != nil {
+		// 	log.Println(err)
+		// 	log.Println("unable to start DB")
+		// }
+		//customerRepo := custrepo.NewCustomerRepo(sqlDB)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		//handlers := api.NewCustomerHandlers(customerRepo, []byte(cfg.SignKey), cfg)
 
-	err := http.ListenAndServe(cfg.Address, r)
-	if err != nil {
-		log.Fatal(err)
+		r := api.NewRouter(handlers, urlAPI) // storager, handlers
+
+		err := http.ListenAndServe(cfg.Address, r)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-}
-
+*/
 func initDB(cfg *config.Config) (*sql.DB, error) {
 	if cfg.DBParams != "" {
 		result, err := db.NewDBConnection(cfg.DBParams).Connect()
@@ -121,7 +132,7 @@ func initDB(cfg *config.Config) (*sql.DB, error) {
 		return result, nil
 	}
 
-	return nil, fmt.Errorf("No DB params")
+	return nil, fmt.Errorf("no DB params")
 }
 
 func initStorager(cfg *config.Config) (api.Storager, error) {
