@@ -6,7 +6,7 @@ import (
 )
 
 // storager Storager, , urlHandlers *URLsHandlers
-func NewRouter(handlers *CustomerHandlers, urlHandlers *Handlers) *chi.Mux {
+func NewRouterForDB(handlers *CustomerHandlers, urlHandlers *Handlers) *chi.Mux {
 	r := chi.NewMux()
 
 	// withAuth wraps a given HTTP handler with authentication middleware.

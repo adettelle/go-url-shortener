@@ -55,9 +55,9 @@ func initializeServer() error {
 		}
 
 		custHandlers := api.NewCustomerHandlers(customerRepo, []byte(cfg.SignKey), cfg)
-		router = api.NewRouter(custHandlers, urlAPI) //storager, urlAPI
+		router = api.NewRouterForDB(custHandlers, urlAPI) //storager, urlAPI
 	} else {
-		router = api.NewRouter(nil, urlAPI)
+		router = api.NewRouterForMemory(urlAPI)
 	}
 
 	//router := api.NewRouter(custHandlers, urlAPI) //storager, urlAPI
