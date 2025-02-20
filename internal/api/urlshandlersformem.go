@@ -10,7 +10,6 @@ import (
 	"net/http"
 
 	"github.com/adettelle/go-url-shortener/internal/config"
-	"github.com/adettelle/go-url-shortener/internal/db"
 	"github.com/adettelle/go-url-shortener/internal/storage"
 	"go.uber.org/zap"
 )
@@ -29,17 +28,17 @@ import (
 // }
 
 type HandlersForMemory struct {
-	repo       Storager
-	config     *config.Config
-	DBCon      db.DBConnector
+	repo   Storager
+	config *config.Config
+	// DBCon      db.DBConnector
 	Finalizing bool // true означает, что надо делать graceful shutdowm
 }
 
-func NewHandlersForMemory(s Storager, cfg *config.Config) *Handlers {
-	return &Handlers{
+func NewHandlersForMemory(s Storager, cfg *config.Config) *HandlersForMemory {
+	return &HandlersForMemory{
 		repo:   s,
 		config: cfg,
-		DBCon:  db.NewDBConnection(cfg.DBParams),
+		// DBCon:  db.NewDBConnection(cfg.DBParams),
 	}
 }
 
@@ -79,15 +78,15 @@ func (h *HandlersForMemory) CreateShortAddressPlainText(w http.ResponseWriter, r
 	}
 
 	// -----------------
-	custCookie, err := r.Cookie("custCookie")
-	if err != nil {
-		errlog.Error("error in getting cookie", zap.Error(err))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// custCookie, err := r.Cookie("custCookie")
+	// if err != nil {
+	// 	errlog.Error("error in getting cookie", zap.Error(err))
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
 
 	if urlID == "" {
-		urlID, err = h.repo.AddOriginalURL(string(body), custCookie.Value)
+		urlID, err = h.repo.AddOriginalURL(string(body), "") //custCookie.Value
 		if err != nil {
 			errlog.Error("error in adding address", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
@@ -234,16 +233,16 @@ func (h *HandlersForMemory) CreateShortAddressJSON(w http.ResponseWriter, r *htt
 	}
 }
 
-func (h *HandlersForMemory) CheckConnectionToDB(w http.ResponseWriter, r *http.Request) {
-	log.Println("Checking DB")
+// func (h *HandlersForMemory) CheckConnectionToDB(w http.ResponseWriter, r *http.Request) {
+// 	log.Println("Checking DB")
 
-	_, err := h.DBCon.Connect()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-}
+// 	_, err := h.DBCon.Connect()
+// 	if err != nil {
+// 		w.WriteHeader(http.StatusInternalServerError)
+// 		return
+// 	}
+// 	w.WriteHeader(http.StatusOK)
+// }
 
 // type PostBatchRequestDTO struct {
 // 	CorrelationID string `json:"correlation_id"`

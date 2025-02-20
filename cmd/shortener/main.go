@@ -38,8 +38,6 @@ func initializeServer() error {
 		return err
 	}
 
-	urlAPI := api.New(storager, cfg)
-
 	var router *chi.Mux
 
 	if cfg.DBParams != "" {
@@ -49,6 +47,8 @@ func initializeServer() error {
 			log.Println("unable to start DB")
 		}
 
+		urlAPI := api.New(storager, cfg)
+
 		customerRepo := custrepo.NewCustomerRepo(sqlDB)
 		if err != nil {
 			log.Fatal(err)
@@ -57,6 +57,7 @@ func initializeServer() error {
 		custHandlers := api.NewCustomerHandlers(customerRepo, []byte(cfg.SignKey), cfg)
 		router = api.NewRouterForDB(custHandlers, urlAPI) //storager, urlAPI
 	} else {
+		urlAPI := api.NewHandlersForMemory(storager, cfg)
 		router = api.NewRouterForMemory(urlAPI)
 	}
 

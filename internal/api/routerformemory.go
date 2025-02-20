@@ -6,7 +6,7 @@ import (
 )
 
 // storager Storager, , urlHandlers *URLsHandlers
-func NewRouterForMemory(urlHandlers *Handlers) *chi.Mux {
+func NewRouterForMemory(urlHandlers *HandlersForMemory) *chi.Mux {
 	r := chi.NewMux()
 
 	// withAuth wraps a given HTTP handler with authentication middleware.
@@ -18,7 +18,7 @@ func NewRouterForMemory(urlHandlers *Handlers) *chi.Mux {
 	r.Post("/", mware.WithLogging(mware.GzipMiddleware(urlHandlers.CreateShortAddressPlainText)))
 	r.Get("/{id}", mware.WithLogging(mware.GzipMiddleware(urlHandlers.GetFullAddress)))
 	r.Post("/api/shorten", mware.WithLogging(mware.GzipMiddleware(urlHandlers.CreateShortAddressJSON)))
-	r.Get("/ping", mware.WithLogging(mware.GzipMiddleware(urlHandlers.CheckConnectionToDB)))
+	//r.Get("/ping", mware.WithLogging(mware.GzipMiddleware(urlHandlers.CheckConnectionToDB)))
 	r.Post("/api/shorten/batch", mware.WithLogging(mware.GzipMiddleware(urlHandlers.PostBatch)))
 	r.Get("/api/user/urls", mware.WithLogging(mware.GzipMiddleware(urlHandlers.GetAllURLS)))
 
