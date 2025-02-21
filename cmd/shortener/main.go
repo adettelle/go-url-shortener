@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,8 +13,10 @@ import (
 	"github.com/adettelle/go-url-shortener/internal/config"
 	"github.com/adettelle/go-url-shortener/internal/db"
 	"github.com/adettelle/go-url-shortener/internal/migrator"
+	"github.com/adettelle/go-url-shortener/internal/storage/custrepo"
 	"github.com/adettelle/go-url-shortener/internal/storage/dbstorage"
 	"github.com/adettelle/go-url-shortener/internal/storage/urlstorage"
+	"github.com/go-chi/chi/v5"
 )
 
 func main() {
@@ -35,14 +38,37 @@ func initializeServer() error {
 		return err
 	}
 
-	urlAPI := api.New(storager, cfg)
-	router := api.NewRouter(storager, urlAPI)
+	var router *chi.Mux
+
+	if cfg.DBParams != "" {
+		sqlDB, err := initDB(cfg)
+		if err != nil {
+			log.Println(err)
+			log.Println("unable to start DB")
+		}
+
+		urlAPI := api.New(storager, cfg)
+
+		customerRepo := custrepo.NewCustomerRepo(sqlDB)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		custHandlers := api.NewCustomerHandlers(customerRepo, []byte(cfg.SignKey), cfg)
+		router = api.NewRouterForDB(custHandlers, urlAPI) //storager, urlAPI
+	} else {
+		urlAPI := api.NewHandlersForMemory(storager, cfg)
+		router = api.NewRouterForMemory(urlAPI)
+	}
+
+	//router := api.NewRouter(custHandlers, urlAPI) //storager, urlAPI
 	srv := &http.Server{
 		Addr:    cfg.Address,
 		Handler: router,
 	}
 
-	go startServer(cfg, storager)
+	log.Printf("Starting server at %s", srv.Addr)
+	go srv.ListenAndServe() // startServer(cfg, custHandlers, urlAPI) // , storager
 
 	// создаю канал, который принимает объект типа os.Signal.
 	c := make(chan os.Signal, 1)
@@ -59,28 +85,55 @@ func initializeServer() error {
 		log.Fatal(err) // failure/timeout shutting down the server gracefully
 	}
 
-	urlAPI.Finalizing = true
+	// urlAPI.Finalizing = true
 
-	err = storager.Finalize()
-	if err != nil {
-		log.Println(err)
-		log.Println("unable to write to file")
-	}
+	// err = storager.Finalize()
+	// if err != nil {
+	// 	log.Println(err)
+	// 	log.Println("unable to write to file")
+	// }
 
 	return nil
 }
 
-func startServer(cfg *config.Config, storager api.Storager) {
-	fmt.Printf("Starting server on port %s\n", cfg.Address)
+/*
+func startServer(cfg *config.Config, handlers *api.CustomerHandlers, urlAPI *api.Handlers) { // , storager api.Storager
 
-	handlers := api.New(storager, cfg)
+		fmt.Printf("Starting server on port %s\n", cfg.Address)
 
-	r := api.NewRouter(storager, handlers)
+		// handlers := api.New(storager, cfg)
+		// sqlDB, err := initDB(cfg)
+		// if err != nil {
+		// 	log.Println(err)
+		// 	log.Println("unable to start DB")
+		// }
+		//customerRepo := custrepo.NewCustomerRepo(sqlDB)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		//handlers := api.NewCustomerHandlers(customerRepo, []byte(cfg.SignKey), cfg)
 
-	err := http.ListenAndServe(cfg.Address, r)
-	if err != nil {
-		log.Fatal(err)
+		r := api.NewRouter(handlers, urlAPI) // storager, handlers
+
+		err := http.ListenAndServe(cfg.Address, r)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+*/
+func initDB(cfg *config.Config) (*sql.DB, error) {
+	if cfg.DBParams != "" {
+		result, err := db.NewDBConnection(cfg.DBParams).Connect()
+		if err != nil {
+			return nil, err
+			// log.Fatal(err)
+		}
+
+		migrator.MustApplyMigrations(cfg.DBParams)
+		return result, nil
+	}
+
+	return nil, fmt.Errorf("no DB params")
 }
 
 func initStorager(cfg *config.Config) (api.Storager, error) {

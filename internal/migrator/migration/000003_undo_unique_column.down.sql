@@ -1,0 +1,1 @@
+alter table url_mapping add constraint original_url_unique unique (original_url); 

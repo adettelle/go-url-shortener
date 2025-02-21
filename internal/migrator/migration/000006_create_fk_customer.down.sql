@@ -1,0 +1,1 @@
+ALTER TABLE url_mapping DROP CONSTRAINT fk_url_mapping_customer;

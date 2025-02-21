@@ -5,8 +5,10 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
+	dbstorage "github.com/adettelle/go-url-shortener/internal/storage/dbstorage"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -60,6 +62,21 @@ func (m *MockStorager) Finalize() error {
 func (mr *MockStoragerMockRecorder) Finalize() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Finalize", reflect.TypeOf((*MockStorager)(nil).Finalize))
+}
+
+// GetAllURLS mocks base method.
+func (m *MockStorager) GetAllURLS(arg0 context.Context) ([]dbstorage.URL, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllURLS", arg0)
+	ret0, _ := ret[0].([]dbstorage.URL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllURLS indicates an expected call of GetAllURLS.
+func (mr *MockStoragerMockRecorder) GetAllURLS(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllURLS", reflect.TypeOf((*MockStorager)(nil).GetAllURLS), arg0)
 }
 
 // GetOriginalURLByShortURL mocks base method.

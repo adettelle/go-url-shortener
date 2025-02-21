@@ -1,0 +1,1 @@
+alter table customer add column pwd varchar(255) not null unique;

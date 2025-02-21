@@ -1,13 +1,23 @@
 package urlstorage
 
 import (
+	"context"
 	"log"
 
 	"github.com/adettelle/go-url-shortener/internal/helpers"
 	"github.com/adettelle/go-url-shortener/internal/storage"
+	"github.com/adettelle/go-url-shortener/internal/storage/dbstorage"
 )
 
+// type CustomerStorage struct {
+// 	UserLogin    string
+// 	UserPassword string
+// 	Adresses     *AddressStorage
+// }
+
 type AddressStorage struct {
+	// aaa@mail.ru: {aaa: google.com, bbb: ya.ru}
+	// Addresses map[string]map[string]string
 	Addresses map[string]string // short_url: original_url
 	FileName  string            // чтобы можно было синхронно писать изменения в файл FileStoragePath
 }
@@ -81,4 +91,8 @@ func (a *AddressStorage) GetShortURLByOriginalURL(originalURL string) (string, e
 	}
 
 	return "", nil
+}
+
+func (a *AddressStorage) GetAllURLS(ctx context.Context) ([]dbstorage.URL, error) {
+	return nil, nil
 }
