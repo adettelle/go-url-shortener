@@ -369,17 +369,17 @@ type GetAllURLsResponseDTO struct {
 	OriginalURL string `json:"original_url"`
 }
 
-func NewURLResponseDTO(url dbstorage.URL) *GetAllURLsResponseDTO {
+func NewURLResponseDTO(url dbstorage.URL, baseURL string) *GetAllURLsResponseDTO {
 	return &GetAllURLsResponseDTO{
-		ShortURL:    url.ShortURL,
+		ShortURL:    baseURL + "/" + url.ShortURL,
 		OriginalURL: url.OriginalURL,
 	}
 }
 
-func NewListURLResponseDTO(urls []dbstorage.URL) []*GetAllURLsResponseDTO {
+func NewListURLResponseDTO(urls []dbstorage.URL, baseURL string) []*GetAllURLsResponseDTO {
 	res := []*GetAllURLsResponseDTO{}
 	for _, url := range urls {
-		res = append(res, NewURLResponseDTO(url))
+		res = append(res, NewURLResponseDTO(url, baseURL))
 	}
 	return res
 }
@@ -423,7 +423,7 @@ func (h *Handlers) GetAllURLS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(NewListURLResponseDTO(urls))
+	resp, err := json.Marshal(NewListURLResponseDTO(urls, h.config.URLAddress))
 	if err != nil {
 		log.Println("error in marshalling json:", err)
 		w.WriteHeader(http.StatusInternalServerError)

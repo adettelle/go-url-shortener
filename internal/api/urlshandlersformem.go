@@ -399,7 +399,7 @@ func (h *HandlersForMemory) GetAllURLS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := json.Marshal(NewListURLResponseDTO(urls))
+	resp, err := json.Marshal(NewListURLResponseDTO(urls, h.config.URLAddress))
 	if err != nil {
 		log.Println("error in marshalling json:", err)
 		w.WriteHeader(http.StatusInternalServerError)
