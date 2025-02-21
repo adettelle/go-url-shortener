@@ -86,7 +86,7 @@ func (h *HandlersForMemory) CreateShortAddressPlainText(w http.ResponseWriter, r
 	// }
 
 	if urlID == "" {
-		urlID, err = h.repo.AddOriginalURL(string(body), "") //custCookie.Value
+		urlID, err = h.repo.AddOriginalURL(string(body)) //custCookie.Value
 		if err != nil {
 			errlog.Error("error in adding address", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
@@ -114,7 +114,7 @@ func (h *HandlersForMemory) GetFullAddress(w http.ResponseWriter, r *http.Reques
 	}
 
 	id := r.PathValue("id")
-	fullAddress, err := h.repo.GetOriginalURLByShortURL(id, "")
+	fullAddress, err := h.repo.GetOriginalURLByShortURL(id)
 	if err != nil {
 		errlog.Error("error in getting address", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -206,7 +206,7 @@ func (h *HandlersForMemory) CreateShortAddressJSON(w http.ResponseWriter, r *htt
 	// urls, err := h.repo.GetAllURLS(context.Background(), custCookie.Value) // userLogin
 
 	if urlID == "" {
-		urlID, err = h.repo.AddOriginalURL(requestBody.OriginalURL, "") // urlID is: vN // custCookie.Value
+		urlID, err = h.repo.AddOriginalURL(requestBody.OriginalURL) // urlID is: vN // custCookie.Value
 		if err != nil {
 			errlog.Error("error in adding address", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
@@ -317,7 +317,7 @@ func (h *HandlersForMemory) PostBatch(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if urlID == "" {
-			urlID, err = h.repo.AddOriginalURL(elem.OriginalURL, "") // urlID is: vN // custCookie.Value
+			urlID, err = h.repo.AddOriginalURL(elem.OriginalURL) // urlID is: vN // custCookie.Value
 			if err != nil {
 				errlog.Error("error in adding address", zap.Error(err))
 				w.WriteHeader(http.StatusInternalServerError)
@@ -392,7 +392,7 @@ func (h *HandlersForMemory) GetAllURLS(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	// log.Println("============", custCookie)
-	urls, err := h.repo.GetAllURLS(context.Background(), "") // userLogin //custCookie.Value
+	urls, err := h.repo.GetAllURLS(context.Background()) // userLogin //custCookie.Value
 	if err != nil {
 		errlog.Error("error in getting all urls", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)

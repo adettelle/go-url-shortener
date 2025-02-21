@@ -19,9 +19,9 @@ func NewURLRepo(ctx context.Context, db *sql.DB) *DBStorage {
 	return &DBStorage{Ctx: ctx, DB: db}
 }
 
-func (s *DBStorage) GetOriginalURLByShortURL(shortURL string, custID string) (string, error) {
-	sqlStatement := "SELECT original_url from url_mapping  where short_url = $1 and customer_id = $2"
-	row := s.DB.QueryRowContext(s.Ctx, sqlStatement, shortURL, custID)
+func (s *DBStorage) GetOriginalURLByShortURL(shortURL string) (string, error) { // , custID string
+	sqlStatement := "SELECT original_url from url_mapping  where short_url = $1"
+	row := s.DB.QueryRowContext(s.Ctx, sqlStatement, shortURL)
 
 	// переменная для чтения результата
 	var originalURL string
@@ -34,7 +34,7 @@ func (s *DBStorage) GetOriginalURLByShortURL(shortURL string, custID string) (st
 	return originalURL, nil
 }
 
-func (s *DBStorage) AddOriginalURL(originalURL string, custID string) (string, error) {
+func (s *DBStorage) AddOriginalURL(originalURL string) (string, error) { // , custID string
 	log.Println("Writing to DB")
 
 	if originalURL == "" {
@@ -46,10 +46,10 @@ func (s *DBStorage) AddOriginalURL(originalURL string, custID string) (string, e
 		return "", err
 	}
 
-	sqlStatement := `insert into url_mapping (short_url, original_url, customer_id) 
-		values ($1, $2, $3)` // TODO on conflict ?????
+	sqlStatement := `insert into url_mapping (short_url, original_url) 
+		values ($1, $2)` // TODO on conflict ?????
 
-	_, err = s.DB.ExecContext(s.Ctx, sqlStatement, randString, originalURL, custID)
+	_, err = s.DB.ExecContext(s.Ctx, sqlStatement, randString, originalURL) // , custID
 	if err != nil {
 		log.Println("error in adding url:", err)
 		return "", err
@@ -88,12 +88,12 @@ type URL struct {
 	OriginalURL string
 }
 
-func (s *DBStorage) GetAllURLS(ctx context.Context, userID string) ([]URL, error) {
+func (s *DBStorage) GetAllURLS(ctx context.Context) ([]URL, error) { // , userID string
 	urls := make([]URL, 0)
 
-	sqlStatement := `select short_url, original_url from url_mapping where customer_id = $1;`
+	sqlStatement := `select short_url, original_url from url_mapping` //  where customer_id = $1;
 
-	rows, err := s.DB.QueryContext(ctx, sqlStatement, userID)
+	rows, err := s.DB.QueryContext(ctx, sqlStatement) // , userID
 	if err != nil || rows.Err() != nil {
 		log.Println("error in getting urls:", err)
 		return nil, err

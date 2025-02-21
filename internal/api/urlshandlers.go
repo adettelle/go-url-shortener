@@ -23,11 +23,11 @@ var errlog *zap.Logger = logger.Logger
 // such as PathStorage. It describes operations to store, retrieve,
 // check for existence, and delete a "address" entity.
 type Storager interface {
-	GetOriginalURLByShortURL(shortURL string, custID string) (string, error)
-	AddOriginalURL(originalURL string, custID string) (string, error) // full address
-	Finalize() error                                                  // отрабатывает завершение приложения (при штатном завершении работы)
+	GetOriginalURLByShortURL(shortURL string) (string, error)
+	AddOriginalURL(originalURL string) (string, error) // full address
+	Finalize() error                                   // отрабатывает завершение приложения (при штатном завершении работы)
 	GetShortURLByOriginalURL(originalURL string) (string, error)
-	GetAllURLS(ctx context.Context, userID string) ([]dbstorage.URL, error)
+	GetAllURLS(ctx context.Context) ([]dbstorage.URL, error) // , userID string
 }
 
 type Handlers struct {
@@ -81,15 +81,15 @@ func (h *Handlers) CreateShortAddressPlainText(w http.ResponseWriter, r *http.Re
 	}
 
 	// -----------------
-	custCookie, err := r.Cookie("custCookie")
-	if err != nil {
-		errlog.Error("error in getting cookie", zap.Error(err))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// custCookie, err := r.Cookie("custCookie")
+	// if err != nil {
+	// 	errlog.Error("error in getting cookie", zap.Error(err))
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
 
 	if urlID == "" {
-		urlID, err = h.repo.AddOriginalURL(string(body), custCookie.Value)
+		urlID, err = h.repo.AddOriginalURL(string(body)) // , custCookie.Value
 		if err != nil {
 			errlog.Error("error in adding address", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
@@ -117,15 +117,15 @@ func (h *Handlers) GetFullAddress(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// -----------------
-	custCookie, err := r.Cookie("custCookie")
-	if err != nil {
-		errlog.Error("error in getting cookie", zap.Error(err))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// custCookie, err := r.Cookie("custCookie")
+	// if err != nil {
+	// 	errlog.Error("error in getting cookie", zap.Error(err))
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
 
 	id := r.PathValue("id")
-	fullAddress, err := h.repo.GetOriginalURLByShortURL(id, custCookie.Value)
+	fullAddress, err := h.repo.GetOriginalURLByShortURL(id) // , custCookie.Value
 	if err != nil {
 		errlog.Error("error in getting address", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -197,13 +197,13 @@ func (h *Handlers) CreateShortAddressJSON(w http.ResponseWriter, r *http.Request
 	var statusCode int
 
 	// -----------------
-	custCookie, err := r.Cookie("custCookie")
-	// log.Println("4444444444444", custCookie.Name, custCookie.Value)
-	if err != nil {
-		errlog.Error("error in getting cookie", zap.Error(err))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// custCookie, err := r.Cookie("custCookie")
+	// // log.Println("4444444444444", custCookie.Name, custCookie.Value)
+	// if err != nil {
+	// 	errlog.Error("error in getting cookie", zap.Error(err))
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
 
 	// проверим, есть ли уже пара short/origin url
 	urlID, err = h.repo.GetShortURLByOriginalURL(requestBody.OriginalURL)
@@ -217,7 +217,7 @@ func (h *Handlers) CreateShortAddressJSON(w http.ResponseWriter, r *http.Request
 	// urls, err := h.repo.GetAllURLS(context.Background(), custCookie.Value) // userLogin
 
 	if urlID == "" {
-		urlID, err = h.repo.AddOriginalURL(requestBody.OriginalURL, custCookie.Value) // urlID is: vN
+		urlID, err = h.repo.AddOriginalURL(requestBody.OriginalURL) // urlID is: vN // , custCookie.Value
 		if err != nil {
 			errlog.Error("error in adding address", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
@@ -309,13 +309,13 @@ func (h *Handlers) PostBatch(w http.ResponseWriter, r *http.Request) {
 	var statusCode int
 
 	// -----------------
-	custCookie, err := r.Cookie("custCookie")
-	log.Println("3333333333333", custCookie.Name, custCookie.Value)
-	if err != nil {
-		errlog.Error("error in getting cookie", zap.Error(err))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// custCookie, err := r.Cookie("custCookie")
+	// log.Println("3333333333333", custCookie.Name, custCookie.Value)
+	// if err != nil {
+	// 	errlog.Error("error in getting cookie", zap.Error(err))
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
 
 	for _, elem := range requestBody {
 
@@ -328,7 +328,7 @@ func (h *Handlers) PostBatch(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if urlID == "" {
-			urlID, err = h.repo.AddOriginalURL(elem.OriginalURL, custCookie.Value) // urlID is: vN
+			urlID, err = h.repo.AddOriginalURL(elem.OriginalURL) // urlID is: vN // , custCookie.Value
 			if err != nil {
 				errlog.Error("error in adding address", zap.Error(err))
 				w.WriteHeader(http.StatusInternalServerError)
@@ -394,6 +394,7 @@ func (h *Handlers) GetAllURLS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// userLogin := r.Header.Get("x-user")
+	// ---------------------
 	custCookie, err := r.Cookie("custCookie")
 	log.Println("555555555555", custCookie.Name, custCookie.Value)
 	if err != nil {
@@ -403,7 +404,12 @@ func (h *Handlers) GetAllURLS(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// log.Println("============", custCookie)
-	urls, err := h.repo.GetAllURLS(context.Background(), custCookie.Value) // userLogin
+	if custCookie.Value == "" {
+		errlog.Error("no cookie", zap.Error(err))
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	urls, err := h.repo.GetAllURLS(context.Background()) // userLogin // , custCookie.Value
 	if err != nil {
 		errlog.Error("error in getting all urls", zap.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
