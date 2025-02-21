@@ -395,12 +395,19 @@ func (h *Handlers) GetAllURLS(w http.ResponseWriter, r *http.Request) {
 
 	// userLogin := r.Header.Get("x-user")
 	// ---------------------
-	custCookie, err := r.Cookie("custCookie")
-	log.Println("555555555555", custCookie.Name, custCookie.Value)
+	custCookie, err := r.Cookie("custID")
+	// log.Println("555555555555", custCookie.Name, custCookie.Value)
 	if err != nil {
-		errlog.Error("error in getting cookie", zap.Error(err))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		custCookie = &http.Cookie{
+			Name:  "custID",
+			Value: "123",
+			Path:  "/",
+		}
+		http.SetCookie(w, custCookie)
+
+		// errlog.Error("error in getting cookie", zap.Error(err))
+		// w.WriteHeader(http.StatusInternalServerError)
+		// return
 	}
 
 	// log.Println("============", custCookie)
