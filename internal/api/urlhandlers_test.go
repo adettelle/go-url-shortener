@@ -102,10 +102,10 @@ func TestCreateShortAddressJson(t *testing.T) {
 	reqBody := shortAddrCreateRequestDTO{OriginalURL: "https://practicum.yandex.ru/"}
 	reqURL := "http://" + cfg.Address + "/api/shorten"
 	id := "qqVjJVf"
-	//custID := "4"
+	custID := "4"
 
 	mockStorage.EXPECT().GetShortURLByOriginalURL(reqBody.OriginalURL).Return("", nil)
-	mockStorage.EXPECT().AddOriginalURL(reqBody.OriginalURL).Return(reqURL+id, nil) //, custID
+	mockStorage.EXPECT().AddOriginalURL(reqBody.OriginalURL, custID).Return(reqURL+id, nil) //
 
 	request, err := requests.
 		URL(reqURL).

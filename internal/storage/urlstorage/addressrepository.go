@@ -42,7 +42,7 @@ func New(shouldRestore bool, fileStoragePath string) (*AddressStorage, error) {
 }
 
 // возращает полный url по ключу (короткому url)
-func (a *AddressStorage) GetOriginalURLByShortURL(shortURL string) (string, error) {
+func (a *AddressStorage) GetOriginalURLByShortURL(shortURL string, custID string) (string, error) {
 	if addr, ok := a.Addresses[shortURL]; ok {
 		return addr, nil
 	}
@@ -52,7 +52,7 @@ func (a *AddressStorage) GetOriginalURLByShortURL(shortURL string) (string, erro
 	}
 }
 
-func (a *AddressStorage) AddOriginalURL(originalURL string) (string, error) {
+func (a *AddressStorage) AddOriginalURL(originalURL string, custID string) (string, error) {
 	if originalURL == "" {
 		return "", &storage.EmptyOriginalURLError{}
 	}
@@ -93,6 +93,6 @@ func (a *AddressStorage) GetShortURLByOriginalURL(originalURL string) (string, e
 	return "", nil
 }
 
-func (a *AddressStorage) GetAllURLS(ctx context.Context) ([]dbstorage.URL, error) {
+func (a *AddressStorage) GetAllURLS(ctx context.Context, custID string) ([]dbstorage.URL, error) {
 	return nil, nil
 }
