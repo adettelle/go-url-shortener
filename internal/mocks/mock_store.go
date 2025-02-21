@@ -36,18 +36,18 @@ func (m *MockStorager) EXPECT() *MockStoragerMockRecorder {
 }
 
 // AddOriginalURL mocks base method.
-func (m *MockStorager) AddOriginalURL(arg0, arg1 string) (string, error) {
+func (m *MockStorager) AddOriginalURL(arg0 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddOriginalURL", arg0, arg1)
+	ret := m.ctrl.Call(m, "AddOriginalURL", arg0)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddOriginalURL indicates an expected call of AddOriginalURL.
-func (mr *MockStoragerMockRecorder) AddOriginalURL(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStoragerMockRecorder) AddOriginalURL(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOriginalURL", reflect.TypeOf((*MockStorager)(nil).AddOriginalURL), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOriginalURL", reflect.TypeOf((*MockStorager)(nil).AddOriginalURL), arg0)
 }
 
 // Finalize mocks base method.
@@ -65,33 +65,33 @@ func (mr *MockStoragerMockRecorder) Finalize() *gomock.Call {
 }
 
 // GetAllURLS mocks base method.
-func (m *MockStorager) GetAllURLS(arg0 context.Context, arg1 string) ([]dbstorage.URL, error) {
+func (m *MockStorager) GetAllURLS(arg0 context.Context) ([]dbstorage.URL, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllURLS", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetAllURLS", arg0)
 	ret0, _ := ret[0].([]dbstorage.URL)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAllURLS indicates an expected call of GetAllURLS.
-func (mr *MockStoragerMockRecorder) GetAllURLS(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStoragerMockRecorder) GetAllURLS(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllURLS", reflect.TypeOf((*MockStorager)(nil).GetAllURLS), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllURLS", reflect.TypeOf((*MockStorager)(nil).GetAllURLS), arg0)
 }
 
 // GetOriginalURLByShortURL mocks base method.
-func (m *MockStorager) GetOriginalURLByShortURL(arg0, arg1 string) (string, error) {
+func (m *MockStorager) GetOriginalURLByShortURL(arg0 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOriginalURLByShortURL", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetOriginalURLByShortURL", arg0)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetOriginalURLByShortURL indicates an expected call of GetOriginalURLByShortURL.
-func (mr *MockStoragerMockRecorder) GetOriginalURLByShortURL(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStoragerMockRecorder) GetOriginalURLByShortURL(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOriginalURLByShortURL", reflect.TypeOf((*MockStorager)(nil).GetOriginalURLByShortURL), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOriginalURLByShortURL", reflect.TypeOf((*MockStorager)(nil).GetOriginalURLByShortURL), arg0)
 }
 
 // GetShortURLByOriginalURL mocks base method.
